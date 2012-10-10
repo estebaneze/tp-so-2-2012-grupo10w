@@ -35,6 +35,8 @@ function Mostrar_componentes{
 	fi
 }
 
+###################################################################
+
 #verifica que iniciar no haya sido ejecutado antes
 if [ -e "$ARCH_BLOQUEO_INICIAR" ]; then
 #escribe un mensaje en el log indicando que iniciar ya fue ejecutado en esta sesión, muestra el estado de los componentes y sale
@@ -45,6 +47,8 @@ if [ -e "$ARCH_BLOQUEO_INICIAR" ]; then
 	echo "No está permitido reinicializar el sistema"
 	return 1 #ya estaba inicializado
 fi
+
+###################################################################
 
 #levanta las variables a memoria desde el archivo de configuración
 declare -a VARS=()
@@ -76,10 +80,62 @@ LoguearW5 I "Inicio de ejecución"
 INI_ESTADO=´Mostrar_componentes "$VARS" "$VALS" "$BINDIR"´
 if [ -z "$INI_ESTADO" ]; then return 3; fi #instalación incompleta
 
-#
-# ACÁ CHEQUEAR QUE LOS ARCHIVOS NECESARIOS ESTÉN EN LOS DIRECTORIOS.
-# SI FALTA ALGO, SALIR CON CÓDIGO DE ERROR 4.
-#
+###################################################################
+
+#verifica los archivos maestros y sus permisos
+if [[ -s "${MAEDIR}/patrones" && -s "${MAEDIR}/sistemas" ]]; then
+	chmod u=r "${MAEDIR}/patrones"
+	chmod u=r "${MAEDIR}/sistemas"
+else
+	LoguearW5 SE "Archivo maestro no encontrado"
+	LoguearW5 I "Fin de la ejecución"
+	echo "Faltan componentes. Fin de la ejecución"
+	return 4
+fi
+
+#verifica los ejecutables
+faltan_binarios=false
+if [ -d "$BINDIR" ]; then
+	if [ "$(ls ${BINDIR} | grep "DetectaW5\.sh")" ]; then chmod u=x "${BINDIR}/DetectaW5\.sh"
+	else faltan_binarios=true; fi
+	if [ "$(ls ${BINDIR} | grep "BuscarW5\.sh")" ]; then chmod u=x "${BINDIR}/BuscarW5\.sh"
+	else faltan_binarios=true; fi
+	if [ "$(ls ${BINDIR} | grep "ListarW5\.pl")" ]; then chmod u=x "${BINDIR}/ListarW5\.pl"
+	else faltan_binarios=true; fi
+	if [ "$(ls ${BINDIR} | grep "MoverW5\.sh")" ]; then chmod u=x "${BINDIR}/MoverW5\.sh"
+	else faltan_binarios=true; fi
+	if [ "$(ls ${BINDIR} | grep "LoguearW5\.sh")" ]; then chmod u=x "${BINDIR}/LoguearW5\.sh"
+	else faltan_binarios=true; fi
+	if [ "$(ls ${BINDIR} | grep "MirarW5\.sh")" ]; then chmod u=x "${BINDIR}/MirarW5\.sh"
+	else faltan_binarios=true; fi
+	if [ "$(ls ${BINDIR} | grep "StopD\.sh")" ]; then chmod u=x "${BINDIR}/StopD\.sh"
+	else faltan_binarios=true; fi
+	if [ "$(ls ${BINDIR} | grep "StartD\.sh")" ]; then chmod u=x "${BINDIR}/StartD\.sh"
+	else faltan_binarios=true; fi
+	
+	if [ ${faltan_binarios} ]; then
+		LoguearW5 SE "Binarios no encontrados"
+		LoguearW5 I "Fin de la ejecución"
+		echo "Faltan componentes. Fin de la ejecución"
+		return 4
+	fi
+else
+	LoguearW5 SE "Directorio de binarios no encontrado"
+	LoguearW5 I "Fin de la ejecución"
+	echo "Faltan componentes. Fin de la ejecución"
+	return 4
+fi
+
+#verifica el resto de los directorios
+if [ ! -d "$ARRIDIR" -o ! -d "$ACEPDIR" -o ! -d "$RECHDIR" -o ! -d "$PROCDIR" -o ! -d "$REPODIR" -o ! -d "$LOGDIR"]
+then
+	LoguearW5 SE "Directorios no encontrados"
+	LoguearW5 I "Fin de la ejecución"
+	echo "Faltan componentes. Fin de la ejecución"
+	return 4
+fi
+
+###################################################################
 
 #si no estaba ya iniciado, invoca a DetectaW5, y luego verifica que se esté ejecutando 
 if [ ps ax | grep -v grep | grep 'DetectaW5' > '/dev/null' ]; then
@@ -95,12 +151,14 @@ else
 		echo "Proceso de inicialización concluido"
 	else
 		LoguearW5 A "Fallo al tratar de iniciar el demonio"
-		LoguearW5 A "Proceso de inicialización concluido"
+		LoguearW5 I "Proceso de inicialización concluido"
 		echo "Fallo al tratar de iniciar el demonio"
 		echo "Proceso de inicialización concluido"
 	fi
 fi
 
-#crea un archivo, que permite saber que el proceso ya se ejecutó, y termina
+###################################################################
+
+#crea un archivo de bloqueo, que permite saber que el proceso ya se ejecutó, y termina
 touch "$ARCH_BLOQUEO_INICIAR"
 return 0
