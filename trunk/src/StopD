@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ -e ./cont_temp ]; then
-    rm ./cont_temp
+if [ -e ./.cont_temp ]; then
+    rm ./.cont_temp
     echo "DetectaW5 se ha detenido correctamente"
 fi
