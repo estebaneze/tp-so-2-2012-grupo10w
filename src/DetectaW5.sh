@@ -2,46 +2,42 @@
 
 #variable interna
 sis_valido=false
-
+error_ambiente=false
 
 #verifico inicializacion de ambiente
 #verifico que las variables no sean nulas
 if [ -z $ARRIDIR ]; then
-        echo "Error, inicializacion del ambiente erronea"
-	exit 1
+        error_ambiente=true
+elif [ -z $ACEPDIR ]; then
+        error_ambiente=true
+elif [ -z $RECHDIR ]; then
+        error_ambiente=true
+elif [ -z $PROCDIR ]; then
+        error_ambiente=true
 fi
-if [ -z $ACEPDIR ]; then
-        echo "Error, inicializacion del ambiente erronea"
-	exit 1
-fi
-if [ -z $RECHDIR ]; then
-        echo "Error, inicializacion del ambiente erronea"
-	exit 1
-fi
-if [ -z $PROCDIR ]; then
-        echo "Error, inicializacion del ambiente erronea"
-	exit 1
-fi
-
 
 #verifico existencia de directorios
 if [ ! -d $GRUPO$ARRIDIR ]; then
-	echo "Error, no existe directorio de arribos $GRUPO$ARRIDIR"
-	exit 2
+	error_ambiente=true
 elif [ ! -d $GRUPO$RECHDIR ]; then
-        echo "Error, no existe directorio de rechazados $GRUPO$RECHDIR"
-	exit 2
+        error_ambiente=true
 elif [ ! -d $GRUPO$ACEPDIR ]; then
-        echo "Error, no existe directorio de aceptados $GRUPO$ACEPDIR"
-	exit 2
+        error_ambiente=true
 elif [ ! -d $GRUPO$PROCDIR ]; then
-        echo "Error, no existe directorio de procesados $GRUPO$PROCDIR"
-	exit 2
+        error_ambiente=true
+fi
+
+#verifico que no haya error de inicializacion de ambiente
+if [ $error_ambiente != false ]; then
+	echo "Error, inicializacion del ambiente erronea"
+	#borro dato oculto que hace que se ejecute infinitamente	
+	rm ./.cont_temp
+	exit 1
 fi
 
 #CICLO PRINCIPAL	
 
-while [ -e ./cont_temp ] #mientras exista el archivo temporal cont_temp se continua ejecutando el ciclo
+while [ -e ./.cont_temp ] #mientras exista el archivo temporal cont_temp se continua ejecutando el ciclo
 do
 
 	#guardo archivos de ARRIDIR en un temporal
@@ -50,7 +46,7 @@ do
 
 	#cuento cantidad de archivos
 	cant_archivos=$(wc -l < archivos_temp)
-	echo $cant_archivos
+	
 	# obtengo todo los codigos de sistema con su fecha de alta y baja
 	cut -f1,3,4 -d',' $GRUPO/MAEDIR/sistemas > cod_sis_temp
 	cant_sistemas=$(wc -l < cod_sis_temp)
@@ -160,10 +156,11 @@ do
 	    sis_valido=false
 	    fecha_valida=false
 	
-
 	done #for - de archivos
+    
+    #DESCOMENTAR CUANDO FUNCIONE BUSCARW5.SH	
+    #chequeo que buscarw5 se este ejecutando solo una vez
+    #sh BuscarW5.sh     
     sleep 10s
-    
-    
-done
 
+done
