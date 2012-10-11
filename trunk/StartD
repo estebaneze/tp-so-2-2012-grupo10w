@@ -1,0 +1,13 @@
+#!/bin/sh
+
+#valido que este corriendo solo una vez
+if [ -e ./cont_temp ]; then
+    echo "No se puede iniciar, DetectaW5 ya esta corriendo"
+else
+    touch ./cont_temp
+    echo "Iniciando comando DetectaW5..."
+    echo "Ok"
+    $GRUPO$BINDIR/DetectaW5.sh & 
+fi
+
+
