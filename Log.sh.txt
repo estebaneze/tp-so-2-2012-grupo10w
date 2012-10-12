@@ -1,0 +1,78 @@
+#!/bin/bash
+
+##########################verificaciones##########################
+#verifico si la extension y directorio del log fueron definidos
+if [ -z "$LOGDIR" ]; then
+        if [ ! -e "$grupo/logdir" ]; then
+                mkdir "$grupo/logdir" -m 777
+        fi
+        directorio="$grupo/logdir"
+else
+        directorio="$LOGDIR"
+fi
+
+if [ -z "$LOGEXT" ]; then
+        extension=".log"
+else
+        extension="$LOGEXT"
+fi
+
+#verifico si el tamano_maximo fue seteado
+if [ ! $MAXLOGSIZE ]; then
+        #100KB
+        let tamano_maximo=100
+else
+        tamano_maximo=$MAXLOGSIZE
+fi
+##################################################################
+
+nombre_comando=$1
+mensaje=$2
+tipo_mensaje=$3
+
+archivo_log="$directorio/$nombre_comando$extension"
+archivo_temp="$directorio/temp.log"
+
+fecha=$(date +%c)
+usuario=$(whoami)
+
+ERROR=0
+SUCCESS=1
+
+if [ $# -ne 3 ]; then
+    exit $ERROR
+else
+        #verificar si existe el archivo de log  
+        if [ ! -f "$archivo_log" ]; then
+                touch "$archivo_log"
+        fi
+
+    tamano_actual=$(expr $(stat -c%s "$archivo_log") / 1024)
+        cantidad_lineas=$(wc -l < "$archivo_log")
+
+        #escribo en el log
+        echo "$fecha-$usuario-$nombre_comando-$tipo_mensaje-$mensaje" >> "$archivo_log"
+
+        #verifico su tamaño
+        if [ $tamano_actual -gt $tamano_maximo ]; then
+                echo "log excedido" >> "$archivo_log"
+                #achico a la mitad el archivo en un archivo auxiliar
+                numero_linea=0
+                while read line
+                do
+                        if [ $numero_linea -ge $((cantidad_lineas/2)) ]; then
+                                echo -e $line >> "$archivo_temp"
+                        fi
+                        let "numero_linea += 1"
+                done < "$archivo_log"
+        #elimino el archivo original y renombro el temporal
+                rm "$archivo_log"
+                if [ ! -z "$BINDIR" ]
+        then
+            `"$BINDIR/mover.sh" "$archivo_temp" "$archivo_log" "gralog"`
+            else
+            `"./mover.sh" "$archivo_temp" "$archivo_log" "gralog"`
+        fi
+    fi
+                        
+fi

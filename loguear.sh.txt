@@ -1,0 +1,224 @@
+#!/bin/bash
+
+NROLINEAS=50   # Número de líneas por defecto mostradas.
+E_SINPAR=950   # Código de error parámetro faltante
+E_PARINC=951   # Código de error parámetro incorrecto
+E_SINCOM=952   # Código de error cuando no se especifica el comando invocante
+E_LOGINE=953   # Cödigo de error cuando no se encuentra el archivo de log a mostrar
+
+#Función de purgado del log
+function purgarLog(){
+
+# Si el tamaño máximo del log no está en la configuración, se toman 100 Kb.
+if [ -z $LOGSIZE ]; then
+  LOGSIZE=102400
+else
+# Si se encuentra, se transforma en bytes para compararlo con el archivo.
+  LOGSIZE=`expr $LOGSIZE "*" 1024`
+fi
+
+#Obtengo el tamaño del archivo en bytes
+tam_log=`du -b $LOG | sed 's|^\([0-9]*\) *.*|\1|'`
+#Agrego 300 bytes, para asegurarme que nunca una linea supere el maximo permitido
+tam_log=`expr $tam_log "+" 300`
+
+if [ $tam_log -ge $LOGSIZE ]; then
+  lines=`wc -l $LOG | sed 's|^\([0-9]*\) *.*|\1|'`
+  lines=`expr $lines "/" 2`
+  tail -$lines $LOG > $LOGDIR/mesg.temp    # Guardo la mitad final del archivo
+  mv $LOGDIR/mesg.temp $LOG                # Renombro al original
+  echo "Archivo de Log depurado."
+  ./LoguearU.sh -a "Log excedido" -c $comando
+fi 
+}
+
+#Función de grabado de log
+function grabarLog(){
+
+######################################################
+# Busco los datos del estándar W5 a loguear    
+######################################################
+# Por Qué
+# Si me dieron un código, lo busco en la lista de mensajes si existe
+desc_mens=`grep "^$2;.*" $CODERRORES | cut -s -d ";" -f3`
+
+# Si no lo encuentro, entonces el mensaje era el que me pasaron por parámetro
+if [ -z "$desc_mens" ]; then
+  #Me lo guardo sin los caracteres invalidos
+  desc_mens=`echo "$2" | tr -dc ' a-zA-Z0-9,;:-'`
+  #Chequeo si se indicó el nombre del comando por parámetro, sino termino con error.
+  if [ ! -n $comando ]; then
+    ./LoguearU.sh -se $E_SINCOM
+    exit $E_SINCOM
+  fi
+else
+  #Si existia, me guardo también el comando que generó el mensaje
+  comando=`grep "^$2;.*" $CODERRORES | cut -s -d ";" -f4`
+fi
+
+######################################################
+# Ubico al archivo de Log
+######################################################
+LOG="$LOGDIR/$comando$LOGEXT"
+
+# Chequeo si existe el directorio del log, sino lo creo
+if [ ! -d "$LOGDIR" ]; then
+  mkdir $LOGDIR
+fi
+# Chequeo si existe el archivo del log, sino lo creo vacio
+if [ ! -f "$LOG" ]; then
+  > $LOG
+fi
+
+# Armo el mensaje completo
+mensaje="$desc_mens $3"
+
+######################################################
+# Limpieza del archivo de log si supera el maximo
+######################################################
+purgarLog
+
+######################################################
+# Escribo la línea de log en el archivo              #
+######################################################
+./Log.sh $1 "$mensaje" $LOG
+
+}
+
+
+# Funcion de mostrar los datos del log
+function mostrarLog(){
+
+MLOG="$LOGDIR/$1$LOGEXT"
+# Chequeo si existe el archivo del log, sino error
+if [ ! -f "$MLOG" ]; then
+    ./LoguearU.sh -se $E_LOGINE
+    exit $E_LOGINE
+fi
+
+if [ -z $nro_lineas ]; then
+  nro_lineas=100
+fi
+
+cat "$MLOG" | grep "$patron" | tail -"$nro_lineas"
+
+}
+
+
+######################################################
+#     COMIENZA EL SCRIPT                             #
+######################################################
+
+######################################################
+# Busco parámetros en el archivo de configuración    #
+######################################################
+
+GRUPO=`pwd`
+GRUPO=${GRUPO%/*}
+CONFDIR=$GRUPO"/confdir"
+CONFIGURACION=$CONFDIR"/InstalarU.conf"
+LOGDIR=`cat $CONFIGURACION | grep LOGDIR | cut -s -d "=" -f2`
+LOGEXT=`cat $CONFIGURACION | grep LOGEXT | cut -s -d "=" -f2`
+LOGSIZE=`cat $CONFIGURACION | grep LOGSIZE | cut -s -d "=" -f2`
+CODERRORES="lista.mens"
+
+######################################################
+# Controlo los parámetros recibidos                  #
+######################################################
+case $1 in
+  -i|-a|-e|-se)
+  # Para la función de grabar en el log, me guardo el código o mensaje a mostrar
+  if [ -n "$2" ]; then
+    cod_log="$2"
+  else
+    # En caso de no haber código ni mensaje, muestro un error
+    ./LoguearU.sh -se $E_SINPAR -v mensaje1
+    exit $E_SINPAR
+  fi
+  case $3 in
+    -v)
+    # De indicarse una variable a agregar, extraigo los caracteres invalidos y me guardo el valor
+    var_adic=`echo "$4" | tr -dc " a-zA-Z0-9,;:-"`
+    if [ -n "$var_adic" ]; then
+      texto_adic="$var_adic"
+    else
+      # Si indica variable adicional pero no ingresa el valor, muestro error
+      ./LoguearU.sh -se $E_SINPAR -v mensaje2
+      exit $E_SINPAR
+    fi
+    ;;
+    -c)
+    # Cuando no se ingresa código de mensaje, puede indicarse el comando invocante por parámetro
+    if [ -n "$4" ]; then
+      comando="$4"
+    else
+      # En caso de no haber código ni mensaje, muestro un error
+      ./LoguearU.sh -se $E_SINCOM
+      exit $E_SINCOM
+    fi
+    ;;
+    "")
+    #Si no ingresa nada, sigo adelante
+    ;;
+    *)
+    # Si se ingresa un texto erróneo en la opcion1, muestro error
+    ./LoguearU.sh -se $E_PARINC -v opcion1
+    exit $E_PARINC
+    ;;
+  esac
+  tipo_mens=$1
+  grabarLog "$tipo_mens" "$cod_log" "$texto_adic"
+  ;;
+
+  -m*)
+  for arg in "$@"
+  do
+    case "$arg" in
+    -m*)
+    # Para la función de mostrar el log, tomo el nombre del log a mostrar
+      log_a_mostrar=`echo "$arg" | sed 's|^-m=\(.*\)|\1|'`
+      if [ ! -n $log_a_mostrar ]; then
+        ./LoguearU.sh -se $E_SINPAR -v "nombre del log."
+        echo 'El formato correcto es: -l="nombre del log a mostrar"'
+        exit $E_SINPAR
+      fi
+      ;;
+    -n*)
+    # Para número de líneas, me guardo la cantidad indicada
+      nro_lineas=`echo "$arg" | sed 's|^-n=\([0-9]*\)|\1|'`
+      if [ -z $nro_lineas ]; then
+        ./LoguearU.sh -se $E_SINPAR -v "número de lineas."
+        echo 'El formato correcto es: -n="numero de lineas a mostrar"'
+        exit $E_SINPAR
+      fi
+      ;;
+    *)
+    # Para filtro por texto, me guardo el patrón ingresado por parámetro
+      patron="$arg"
+      ;;
+    esac
+  done
+  if [ ! -n $log_a_mostrar ]; then
+    ./LoguearU.sh -se $E_SINPAR -v "nombre del log."
+    echo 'El formato correcto es: -l="nombre del log a mostrar"'
+    exit $E_SINPAR
+  else
+    mostrarLog "$log_a_mostrar"
+  fi
+
+  ;;
+  "")
+  # Si no se ingresa texto en el parametro1, muestro error
+  ./LoguearU.sh -se $E_SINPAR -v parametro1
+  exit $E_SINPAR
+  ;;
+  *)
+  # Si se ingresa un texto erróneo en el parametro1, muestro error
+  ./LoguearU.sh -se $E_PARINC -v parametro1
+  exit $E_PARINC
+  ;;
+esac
+
+
+
+exit 0
