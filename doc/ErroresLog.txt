@@ -1,0 +1,24 @@
+IniciarW5.sh
+************
+
+LoguearW5.sh "IniciarW5" I "Inicio de ejecución"
+LoguearW5.sh "IniciarW5" E "Se intentó inicializar un ambiente ya inicializado"
+LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
+LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
+LoguearW5.sh "IniciarW5" SE "Archivo maestro no encontrado"
+LoguearW5.sh "IniciarW5" SE "Binarios no encontrados"
+LoguearW5.sh "IniciarW5" SE "Directorio de binarios no encontrado"
+LoguearW5.sh "IniciarW5" SE "Directorios no encontrados"
+LoguearW5.sh "IniciarW5" A "DetectaW5 ya estaba en ejecución"
+LoguearW5.sh "IniciarW5" I "Demonio corriendo bajo el nro. ${PID_DETECTA}"
+LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
+LoguearW5.sh "IniciarW5" A "Fallo al tratar de iniciar el demonio"
+
+
+DetectaW5.sh
+************
+mensaje="Se movio el archivo $archivo al directorio de aceptados"
+sh LoguearW5.sh "DetectarW5" "I" "$mensaje"     
+
+mensaje="Se movio el archivo $archivo al directorio de rechazados"
+sh LoguearW5.sh "DetectarW5" "I" "$mensaje"     
