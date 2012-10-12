@@ -1,7 +1,7 @@
 #! /bin/bash
 
 #funcion que imprime el correcto uso de la herramienta
-function errorParametro {
+errorParametro() {
         echo "Error uso LoguearW5"
         echo "Forma Correcta:"
         echo "LoguearW5 <comando> <tipoMensaje [I, A, E, SE]> <mensaje>"
@@ -18,7 +18,6 @@ comando=$1
 tipoMensaje=$2
 mensaje=$3
 
-
 #TipoMensaje OK?
 if [ $tipoMensaje != "I" ] && [ $tipoMensaje != "A" ] && [ $tipoMensaje != "E" ] && [ $tipoMensaje != "SE" ]
 then
@@ -27,23 +26,23 @@ then
 fi
 
 #extension y directorio estan definidos? Sino => valores default
-if [ -z "$logdir" ]; then
-	logdir="logdir"
+if [ -z "$LOGDIR" ]; then
+	LOGDIR="logdir"
 fi
 
-if [ -z "$logext" ]; then
-        logext="log"
+if [ -z "$LOGEXT" ]; then
+        LOGEXT="log"
 fi
 
 #path de la carpeta de logueo
-logPath="$grupo/$logdir"
+logPath="$GRUPO/$LOGDIR"
 
 #si no existe carpeta logueo, la creo
 if [ ! -d "$logPath" ]; then
         mkdir "$logPath" -p -m 777
 fi
 
-nombreArchivoLog="$comando.$logext"
+nombreArchivoLog="$comando.$LOGEXT"
 archivoLog="$logPath/$nombreArchivoLog"
 
 when=$(date)
