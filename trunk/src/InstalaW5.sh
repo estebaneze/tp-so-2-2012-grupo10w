@@ -19,7 +19,7 @@ function ChequearPerl {
 			return;
 		fi
 	fi
-	echo "Para instalar el TP es necesario contar con Perl 5 o superior instalado. Efectue su instalacion e intentelo nuevamente\n"
+	echo "Para instalar el TP es necesario contar con Perl 5 o superior instalado. Efectue su instalacion e intentelo nuevamente"
 	echo "Proceso de Instalacion Cancelado"
 	exit 1;
 }
@@ -37,14 +37,19 @@ function DefinirDirectorio {
 	if [ "$linea" != "" ]; then
 		echo "$linea"
 		if [[ $linea == /* ]]; then
-			eval "$2=$GRUPO$linea"	#uso eval para hacer doble dereferenciacion
+			eval "$2=$GRUPO$linea"
 		else
 			eval "$2=$GRUPO/$linea"
 		fi
 	fi
 }
 
+#Define el valor de DATASIZE, si el valor definido por el usuario es mayor
+#al espacio libre, se le da la opción de ingresa un nuevo valor
+#Retorna 0 si se definió el valor, 1 en caso contrario
 function DefinirDataSize {
+	ESPACIOLIBRE=0
+	while [ $ESPACIOLIBRE -lt $DATASIZE ]; do
 	echo "Defina el espacio mínimo libre para el arribo de archivos externos en MBytes ($DATASIZE):"
 	read linea
 	if [ "$linea" != "" ]; then
@@ -53,76 +58,207 @@ function DefinirDataSize {
 	ARRIDIRTEMP=$ARRIDIR
 	while test ! -e $ARRIDIRTEMP; do
 		ARRIDIRTEMP=$(dirname $ARRIDIRTEMP)
-	done
-	ESPACIOLIBRE=0
-	while [ $ESPACIOLIBRE -lt $DATASIZE ]; do
+	done	
 		ESPACIOLIBRE=$(df -k $ARRIDIRTEMP | awk 'NR == 2 {print $4}')
 		if [ $ESPACIOLIBRE -lt $DATASIZE ]; then
 			echo "Insuficiente espacio en disco."
 			echo "Espacio disponible: $ESPACIOLIBRE Mb."
 			echo "Espacio requerido $DATASIZE Mb."
 			echo "Cancele la instalación e inténtelo más tarde o vuelva a intentarlo con otro valor."
+			while [ $linea!="Si" -a $linea!="No" ] 
+			do
+				echo "Desea ingresar otro valor? (Si-No)"
+			done
+			if [ $linea="No" ]; then
+				echo "Saliendo de la Instalación"
+				return 1
+			fi
+		fi
+	done
+	return 0
+}
+
+#Crea todos los directorios que no existan de las rutas pasadas como parametro
+function CrearDirectorios {
+	for i in "$@"
+	do
+		if [ ! -d $i ]; then 
+			echo "$i"
+			mkdir -p -m777 $i
 		fi
 	done
 }
 
-function CrearDirectorio {
-	if [ ! -d $1 ]; then 
-		echo "$1"
-		mkdir -m777 $1
+#Imprime por salida estandar y en el archivo de log de instalación
+function ImprimirYLoguear {
+	echo "$2"
+	LoguearW5.sh "InstalaW5" "$1" "$2"
+}
+
+#Guarda las variables de ambiente en el archivo de configuración
+function GuardarVariables {
+	usuario=$(whoami)
+	fechaHora=$(date +"%d/%m/%y %I:%M%P")
+	echo "GRUPO=$GRUPO=$usuario=$fechaHora" > $CONFARCH
+	echo "CONFDIR=$CONFDIR=$usuario=$fechaHora" >> $CONFARCH
+	echo "BINDIR=$BINDIR=$usuario=$fechaHora" >> $CONFARCH
+	echo "MAEDIR=$MAEDIR=$usuario=$fechaHora" >> $CONFARCH
+	echo "ARRIDIR=$ARRIDIR=$usuario=$fechaHora" >> $CONFARCH
+	echo "ACEPDIR=$ACEPDIR=$usuario=$fechaHora" >> $CONFARCH
+	echo "RECHDIR=$RECHDIR=$usuario=$fechaHora" >> $CONFARCH
+	echo "PROCDIR=$PROCDIR=$usuario=$fechaHora" >> $CONFARCH
+	echo "REPODIR=$REPODIR=$usuario=$fechaHora" >> $CONFARCH
+	echo "LOGDIR=$LOGDIR=$usuario=$fechaHora" >> $CONFARCH
+	echo "LOGEXT=$LOGEXT=$usuario=$fechaHora" >> $CONFARCH
+	echo "LOGSIZE=$LOGSIZE=$usuario=$fechaHora" >> $CONFARCH
+	echo "DATASIZE=$DATASIZE=$usuario=$fechaHora" >> $CONFARCH
+	echo "SECUENCIA1=0=$usuario=$fechaHora" >> $CONFARCH
+	echo "SECUENCIA2=0=$usuario=$fechaHora" >> $CONFARCH
+}
+
+#Carga las variables de ambiente del archivo de configuración
+function CargarVariables {
+	while read linea; 
+	do
+        if [ -z "$linea" ]; then
+			continue
+		fi
+    	var=$(echo $linea | cut -d'=' -f1)
+    	val=$(echo $linea | cut -d'=' -f2)
+    	eval "$var=$val"
+	done < "$CONFARCH"
+}
+
+#Revisa la instalación del sistema en caso que ya haya sido instalado anteriormente
+#Determina si la instalación está completa o faltan archivos.
+#En caso que la instalación esté completa informa que está completa y retorna 0
+#En caso que la instlación esté incompleta informa que archivos o directorios faltan y retorna 1
+#En caso que la instalación esté incompleta pero no estén los archivos faltantes en la carpeta
+#de instalación para instalarse retorna 2
+function ChequearInstalacion {
+
+	#Si alguna variable no esta seteada o no existe la seteo al valor default
+	#No deberia pasar, pero por las dudas que el usuario haya tocado
+	#el archivo de configuracion
+	if [ -z $BINDIR ]; then	BINDIR=$GRUPO/bin; fi
+	if [ -z $MAEDIR ]; then	MAEDIR=$GRUPO/mae; fi
+	if [ -z $ARRIDIR ]; then ARRIDIR=$GRUPO/arribos; fi
+	if [ -z $ACEPDIR ]; then ACEPDIR=$GRUPO/aceptados; fi
+	if [ -z $RECHDIR ]; then RECHDIR=$GRUPO/rechazados; fi
+	if [ -z $PROCDIR ]; then PROCDIR=$GRUPO/procesados; fi
+	if [ -z $REPODIR ]; then REPODIR=$GRUPO/reportes; fi
+	if [ -z $LOGDIR ]; then LOGDIR=$GRUPO/log; fi
+	if [ -z $LOGEXT ]; then LOGEXT=".log"; fi
+	if [ -z $LOGSIZE ]; then LOGSIZE=400; fi
+	if [ -z $DATASIZE ]; then DATASIZE=100; fi	
+	
+	#Chequeo que todos los directorios estén creados y tengan los 
+	#archivos que corresponden, los que no estén los agrego al array
+	#de faltantes
+	
+	declare -a archfaltantes
+	declare -a directorios
+	declare -a binarios
+	declare -a maestros
+	declare -a dirfaltantes
+	directorios=( $BINDIR $MAEDIR $ARRIDIR $ACEPDIR $RECHDIR $PROCDIR $REPODIR $LOGDIR )
+	binarios=( IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD )
+	maestros=( patrones sistemas )
+
+	#Reviso si hay archivos o directorios faltantes
+	for i in "${directorios[@]}"
+	do
+		if [ ! -d $i ]; then
+			dirfaltantes+=($i)
+		fi
+	done
+	for i in "${binarios[@]}"
+	do
+		if [ ! -e $BINDIR/$i ]; then
+			archfaltantes+=($i)
+		fi
+	done
+	for i in "${maestros[@]}"
+	do
+		if [ ! -e $MAEDIR/$i ]; then
+			archfaltantes+=($i)
+		fi
+	done
+
+	#Si no hay archivos ni directorios faltantes listo la ubicacion de todo y retorno 0
+	if [ ${#archfaltantes[@]} -eq 0 -a ${#dirfaltantes[@]} -eq 0 ]; then
+		echo "Librería del Sistema: $CONFDIR"
+		if [ -e $CONFDIR/InstalaW5.conf ]; then echo "	InstalaW5.conf"; fi
+		if [ -e $CONFDIR/InstalaW5.log ]; then echo "	InstalaW5.log"; fi
+		echo "Ejecutables: $BINDIR"
+		for i in "${binarios[@]}"
+		do
+			echo "	$i"
+		done
+		echo "Archivos Maestros: $MAEDIR"
+		for i in "${maestros[@]}"
+		do
+			echo "	$i"
+		done
+		echo "Directorio de arribo de archivos externos: $ARRIDIR"
+		echo "Archivos externos aceptados: $ACEPDIR"
+		echo "Archivos externos rechazados: $RECHDIR"
+		echo "Archivos procesados: $PROCDIR"
+		echo "Reportes de salida: $REPODIR"
+		echo "Logs de auditoria del Sistema: $LOGDIR/<comando>$LOGEXT"
+		echo "Estado de la instalación: COMPLETA"
+		echo "Proceso de Instalación Cancelado"
+		return 0
+	else
+		#Chequeo que Perl esté instalado
+		ChequearPerl
+		#Chequeo que se encuentren todos los archivos faltantes para instalar
+		#Si no estan salgo retornando 2		
+		ChequearInstalables ${archfaltantes[@]}
+		if [ $? -eq 1 ]; then 
+			return 2
+		fi
+
+		#Listo los componentes existentes y faltantes y retorno 1
+		echo "Componentes Existentes:"
+		if [ -d $BINDIR ]; then
+			echo "	Ejecutables: $BINDIR"
+			for i in "${binarios[@]}"
+			do
+				if [ -e $BINDIR/$i ]; then
+					echo "	$i"
+				fi
+			done
+		else
+			echo "	Ejecutables: Ninguno"
+		fi
+		if [ -d $MAEDIR ]; then
+			echo "	Archivos Maestros: $MAEDIR"
+			for i in "${maestros[@]}"
+			do
+				if [ -e $MAEDIR/$i ]; then
+					echo "	$i"
+				fi
+			done
+		else
+			echo "	Archivos Maestros: Ninguno"
+		fi
+		echo "Componentes faltantes:"
+		for i in "${dirfaltantes[@]}"
+		do
+			echo "	$i"
+		done
+		for i in "${archfaltantes[@]}"
+		do
+			echo "	$i"
+		done
+		echo "Estado de la instalacion: INCOMPLETA"
+		return 1;
 	fi
 }
-############################################
-##             COMIENZO                   ##
-############################################
 
-GRUPO=$PWD
-CONFDIR=$GRUPO/confdir
-CONFARCH=$CONFDIR/InstalaW5.conf
-#Compruebo que exista el directorio de configuracion
-#Si no existe, lo creo
-if [ ! -d $CONFDIR ]; then
-	mkdir -m777 $CONFDIR
-fi
-#Si no existe el archivo de configuración quiere decir
-#que no se instalo nunca
-
-#Chequeo que este instalado Perl
-ChequearPerl
-MSG="Defina el directorio de grabación de los ejecutables"
-#BINDIR=$GRUPO/bin
-DefinirDirectorio MSG BINDIR /bin
-MSG="Defina el directorio de instalación de los archivos maestros"
-#MAEDIR=$GRUPO/mae
-DefinirDirectorio MSG MAEDIR /mae
-while [ "$RESPUESTA" != "Si" ]
-do
-	MSG="Defina el directorio de grabación de archivos externos"
-	#ARRIDIR=$GRUPO/arribos
-	DefinirDirectorio MSG ARRIDIR /arribos
-	DATASIZE=100
-	DefinirDataSize		#revisar linea del dirname
-	MSG="Defina el directorio de grabación de los archivos externos rechazados"
-	#RECHDIR=$GRUPO/rechazados
-	DefinirDirectorio MSG RECHDIR /rechazados
-	MSG="Defina el directorio de grabación de los archivos externos aceptados"
-	#ACEPDIR=$GRUPO/aceptados
-	DefinirDirectorio MSG ACEPDIR /aceptados
-	MSG="Defina el directorio de grabación de los archivos procesados"
-	#PROCDIR=$GRUPO/procesados
-	DefinirDirectorio MSG PROCDIR /procesados
-	LOGDIR=$GRUPO/log
-	LOGEXT=.log
-	LOGSIZE=400
-	echo "Defina el tamaño máximo para los archivos $LOGEXT en Kbytes ($LOGSIZE): "
-	read linea
-	if [ "$linea" != "" ]; then
-		LOGSIZE=$linea
-	fi
-	MSG="Defina el directorio de grabación de los reportes de salida"
-	#REPODIR=$GRUPO/reportes
-	DefinirDirectorio MSG REPODIR /reportes
-	clear
+#Informa los directorios y datos con los que se procederá la instalación
+function InformarDatosInstalacion {
 	echo "Librería del Sistema: $CONFDIR"
 	echo "Ejecutables: $BINDIR"
 	echo "Archivos maestros: $MAEDIR"
@@ -134,18 +270,136 @@ do
 	echo "Reportes de salida: $REPODIR"
 	echo "Logs de auditoria del Sistema: $LOGDIR/<comando>$LOGEXT"
 	echo "Tamaño máximo para los archivos del log del sistema: $LOGSIZE Kb"
-	echo "Estado de la instalacion: LISTA"
+}
+
+#Retorna 0 si se encuentran todos los archivos instalables, caso contrario 1
+function ChequearInstalables {
+	declare local contador
+	contador=0
+	for i in "$@"
+	do
+		if [ ! -e $GRUPO/$i ]; then
+			if [ $contador -eq 0 ]; then
+				echo "No se encuentran los siguientes archivos de instalación en $GRUPO:"
+			fi
+			echo "	$i"
+			let contador=contador+1
+		fi
+	done
+	if [ $contador -gt 0 ]; then
+		echo "Deben encontrarse todos los archivos de instalación necesarios en $GRUPO para proceder con la instalación"
+		echo "Para más información lea el archivo readme.txt"
+		echo "Saliendo de la instalación"
+		return 1
+	fi
+	return 0
+}
+
+#Mueve los archivos pasados desde el segundo parametro en 
+#adelante de $GRUPO al directorio pasado en el primer parametro
+#ambos directorios deben estar creados y los archivos deben existir
+function MoverArchivos {
+	for i in $(seq 2 $#)
+	do
+		if [ ! -e "$1/${!i}" ]; then
+			mv $GRUPO/${!i} $1
+		fi
+	done
+}
+############################################
+##             COMIENZO                   ##
+############################################
+
+GRUPO=$PWD
+CONFDIR=$GRUPO/confdir
+CONFARCH=$CONFDIR/InstalaW5.conf
+LOGINSTARCH=$CONFDIR/InstalaW5.log
+#Compruebo que exista el directorio de configuracion
+#Si no existe, lo creo
+if [ ! -d $CONFDIR ]; then
+	mkdir -m777 $CONFDIR
+fi
+#Si no existe el archivo de configuración quiere decir
+#que no se instalo nunca
+
+if [ ! -e $CONFARCH ]; then
+	#Chequeo que este instalado Perl
+	ChequearPerl
+
+	#Chequeo que estén todos los archivos de instalación, si falta alguno salgo
+	archivosInstalacion=( IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD patrones sistemas )
+	ChequearInstalables ${archivosInstalacion[@]}
+	if [ $? -eq 1 ]; then 
+		exit 4
+	fi
+	MSG="Defina el directorio de grabación de los ejecutables"
+	DefinirDirectorio MSG BINDIR /bin
+	MSG="Defina el directorio de instalación de los archivos maestros"
+	DefinirDirectorio MSG MAEDIR /mae
+	while [ "$RESPUESTA" != "Si" ]
+	do
+		MSG="Defina el directorio de grabación de archivos externos"
+		DefinirDirectorio MSG ARRIDIR /arribos
+		DATASIZE=100
+		DefinirDataSize
+		if [ $? -eq 1 ]; then
+			echo "Instalacion cancelada por el usuario"
+			exit 2
+		fi
+		MSG="Defina el directorio de grabación de los archivos externos rechazados"
+		DefinirDirectorio MSG RECHDIR /rechazados
+		MSG="Defina el directorio de grabación de los archivos externos aceptados"
+		DefinirDirectorio MSG ACEPDIR /aceptados
+		MSG="Defina el directorio de grabación de los archivos procesados"
+		DefinirDirectorio MSG PROCDIR /procesados
+		LOGDIR=$GRUPO/log
+		LOGEXT=.log
+		LOGSIZE=400
+		echo "Defina el tamaño máximo para los archivos $LOGEXT en Kbytes ($LOGSIZE): "
+		read linea
+		if [ "$linea" != "" ]; then
+			LOGSIZE=$linea
+		fi
+		MSG="Defina el directorio de grabación de los reportes de salida"
+		DefinirDirectorio MSG REPODIR /reportes
+		clear
+		InformarDatosInstalacion
+		echo "Estado de la instalacion: LISTA"
+		while [ "$RESPUESTA" != "Si" -a "$RESPUESTA" != "No" ]
+		do
+			echo "Los datos ingresados son correctos? (Si-No)"
+			read RESPUESTA
+		done
+
+		if [ "$RESPUESTA" = "No" ]; then
+			RESPUESTA=
+			clear
+		fi
+	done
+else
+	CargarVariables
+	ChequearInstalacion
+	salida=$?
+	if [ $salida -eq 0 ]; then
+		exit 0
+	fi
+	if [ $salida -eq 2 ]; then
+		exit 4
+	fi
+	RESPUESTA=
 	while [ "$RESPUESTA" != "Si" -a "$RESPUESTA" != "No" ]
 	do
-		echo "Los datos ingresados son correctos? (Si-No)"
-		read RESPUESTA
+		echo "Se procederá a la instalación de los componentes faltantes. Continuar? (Si-No)"
+		read RESPUESTA	
 	done
-
 	if [ "$RESPUESTA" = "No" ]; then
-		RESPUESTA=
-		clear
+		echo "Instalacion de componentes faltantes finalizada por el usuario"
+		exit 2
 	fi
-done
+	clear
+	InformarDatosInstalacion
+	echo "La instalación se llevará a cabo con estos datos."
+fi
 RESPUESTA=
 while [ "$RESPUESTA" != "Si" -a "$RESPUESTA" != "No" ]
 do
@@ -153,27 +407,22 @@ do
 	read RESPUESTA
 done
 if [ "$RESPUESTA" = "No" ]; then
-	#cerrar archivo log
+	echo "Instalacion cancelada por el usuario"
 	exit 2
 fi
 
-
-echo "Creando Estructura de directorio. . . ."
-CrearDirectorio $BINDIR
-CrearDirectorio $MAEDIR
-CrearDirectorio $ARRIDIR
-CrearDirectorio $RECHDIR
-CrearDirectorio $ACEPDIR
-CrearDirectorio $PROCDIR
-CrearDirectorio $LOGDIR
-CrearDirectorio $REPODIR
-
+echo "Creando Estructura de directorios. . . ."
+CrearDirectorios $BINDIR $MAEDIR $ARRIDIR $RECHDIR $ACEPDIR $PROCDIR $LOGDIR $REPODIR
 
 echo "Instalando Archivos Maestros"
-#Mover Archivos
+MoverArchivos $MAEDIR patrones sistemas
 
 echo "Instalando Programas y Funciones"
-#Mover Archivos
+MoverArchivos $BINDIR IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD
 
 echo "Actualizando la configuración del sistema"
+GuardarVariables
 
+echo "Instalación Concluida"
+
+exit 0
