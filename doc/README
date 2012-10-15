@@ -1,32 +1,74 @@
 * IniciarW5:
 
-	- Luego de la instalación y antes de poder usar el sistema propiamente dicho, se debe inicializar el ambiente con el comando IniciarW5.sh.
-	- Para permitirle al comando el acceso a las variables del ambiente, debe ejecutarse en el mismo ambiente, es decir, con un punto y un espacio precediendo la ruta del comando.
-	Ejemplo:
+    - Luego de la instalación y antes de poder usar el sistema propiamente
+      dicho, se debe inicializar el ambiente con el comando IniciarW5.sh.
+    - Para permitirle al comando el acceso a las variables del ambiente,
+      debe ejecutarse en el mismo ambiente, es decir, con un punto y un 
+      espacio precediendo la ruta del comando.
+        Ejemplo:
 
 	~$ . /home/usuario/bindir/IniciarW5.sh
 
-	- Este comando también se encarga de revisar que la instalación se haya realizado correctamente y en forma completa, e informar por pantalla sobre el estado de los componentes del sistema. Antes de terminar, pone a correr el demonio DetectaW5.
-	- No está permitido reinicializar el ambiente, por lo que ejecutar este comando más de una vez en una misma sesión no tendrá ningún efecto sobre el mismo.
+    - Este comando también se encarga de revisar que la instalación se haya
+      realizado correctamente y en forma completa, e informar por pantalla
+      sobre el estado de los componentes del sistema.
+      Antes de terminar, pone a correr el demonio DetectaW5.
+    - No está permitido reinicializar el ambiente, por lo que ejecutar este
+      comando más de una vez en una misma sesión no tendrá ningún efecto
+      sobre el mismo.
 	
 * DetectaW5:
 
-	- Este comando (demonio) es llamada desde el comando IniciarW5, mediante el comando StartD (pudiendose parar mediante otro comando StopD).
-	Ejemplo:
+    - Este comando (demonio) es llamada desde el comando IniciarW5, mediante
+      el comando StartD (pudiendose parar mediante el comando StopD).
+        Ejemplo:
 	
 	~$ . /home/usuario/bindir/StartD.sh
 	
-	- Este demonio chequea que el ambiente este correctamente inicializado, en caso contrario finaliza su ejecucion.
-	- DetectaW5 se encarga de detectar archivos de log en el directorio $ARRIDIR (ver archivo de configuracion), si el mismo es valido lo mueve a traves del comando MoverW5.sh al directorio $ACEPDIR, en caso contrario lo mueve al directorio $RECHDIR.
-	- En el nombre del archivo a detectar se describe "CodSitema_Fecha", es mismo es valido si:
-		- El codigo de sistema es valido, es decir existe en el archivo /MAEDIR/sistemas.
-		- La fecha sea valida, o sea se cumpla:
-			* Fecha menor o igual a la actual
-			* Fecha mayor o igual a la fecha de alta del sistema (descripta tambien en /MAEDIR/sistemas).
-			* Fecha menor o igual a la fecha de baja (si existiese).
-			* Formato de fecha valido aaaa-mm-dd
-		- El archivo sea de tipo texto.
-	- Todo movimiento, aceptado o rechazadp, se registra en un log a traves del comando Loguear.sh
-	- Cada vez que el demonio se ejecute y encuentre que hay archivos en el directorio $ACEPDIR, invocara al comando BuscarW5.sh para su respectivo procesamiento.
-	- Solo esta permitido ejecutar este comando mediante StartD o StopD, de otra manera puede haber comportamiento erroneos en el comando.
-	- El tiempo que el demonio permanece dormido se puede setear a traves de VI.
+    - Este demonio chequea que el ambiente este correctamente inicializado,
+      en caso contrario finaliza su ejecucion.
+    - DetectaW5 se encarga de detectar archivos de log en el directorio 
+      $ARRIDIR (ver archivo de configuracion), si el mismo es valido lo
+      mueve a traves del comando MoverW5.sh al directorio $ACEPDIR,
+      en caso contrario lo mueve al directorio $RECHDIR.
+    - En el nombre del archivo a detectar se describe "CodSitema_Fecha",
+      es mismo es valido si:
+        - El codigo de sistema es valido, es decir existe en el archivo
+          /MAEDIR/sistemas.
+        - La fecha sea valida, o sea se cumpla:
+            * Fecha menor o igual a la actual
+            * Fecha mayor o igual a la fecha de alta del sistema
+              (descripta tambien en /MAEDIR/sistemas).
+            * Fecha menor o igual a la fecha de baja (si existiese).
+            * Formato de fecha valido aaaa-mm-dd
+            - El archivo sea de tipo texto.
+    - Todo movimiento, aceptado o rechazado, se registra en un log a traves
+      del comando Loguear.sh
+    - Cada vez que el demonio se ejecute y encuentre que hay archivos en el
+      directorio $ACEPDIR, invocara al comando BuscarW5.sh para su
+      respectivo procesamiento.
+    - Solo esta permitido ejecutar este comando mediante StartD o StopD,
+      de otra manera puede haber comportamiento erroneos en el comando.
+    - El tiempo que el demonio permanece dormido se puede setear a traves
+      de VI.
+
+* ListarW5:
+
+    - Este comando permite visualizar de forma comoda los resultados
+      provenientes de ejecutar el comando BuscarW5.
+    - Ejecutandolo con el parametro -h, brinda la en pantalla la informacion
+      necesaria para su correcto manejo.
+    - Toma como parametros, -r o -g, construyendo informes a partir de
+      archivos de resultados, o archivos rglobales.
+      Estos parametros son mutuamente excluyentes.
+        * Luego de seleccionado por parametro el tipo de informe a crear,
+          se piden por pantalla una serie de filtros a partir de los cuales
+          realizar las consultas y su posterior procesamiento.
+    - En conjunto con el parametro -r o -g, puede existir el parametro -x
+      que a la par de mostrar el informe por pantalla, lo guarda en disco
+      con nombres secuenciales incrementales.
+
+        Ejemplo:
+
+	~$ . /home/usuario/bindir/ListarW5.pl { -r | -g } [ -x ] [ -h ]
+
