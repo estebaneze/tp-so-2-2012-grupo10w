@@ -2,7 +2,7 @@
 #Comando IniciarW5
 #devuelve 1, 2, 3 o 4 si termina con error
 
-ARCH_CONFIG="${CONFDIR}/InstalaW5"
+ARCH_CONFIG="${CONFDIR}/config"
 ARCH_BLOQUEO_INICIAR="${TEMPDIR}/iniciar.bloqueo"
 
 ###################################################################

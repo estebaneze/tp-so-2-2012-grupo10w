@@ -1,0 +1,10 @@
+* IniciarW5:
+
+	- Luego de la instalación y antes de poder usar el sistema propiamente dicho, se debe inicializar el ambiente con el comando IniciarW5.sh.
+	- Para permitirle al comando el acceso a las variables del ambiente, debe ejecutarse en el mismo ambiente, es decir, con un punto y un espacio precediendo la ruta del comando.
+	Ejemplo:
+
+	~$ . /home/usuario/bindir/IniciarW5.sh
+
+	- Este comando también se encarga de revisar que la instalación se haya realizado correctamente y en forma completa, e informar por pantalla sobre el estado de los componentes del sistema. Antes de terminar, pone a correr el demonio DetectaW5.
+	- No está permitido reinicializar el ambiente, por lo que ejecutar este comando más de una vez en una misma sesión no tendrá ningún efecto sobre el mismo.
