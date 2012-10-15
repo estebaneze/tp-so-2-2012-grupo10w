@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#
+
 #   Comando de consultas y listados: ListarV5 y ListarW5
 #
 #       DESCRIPCIÓN
@@ -198,6 +198,61 @@ sub get_proximo_nombre_reporte {
     return $nuevo_nombre;
 }
 
+sub cargar_resultados {
+    my %resultados = ();
+
+    if ( ! exists( $ENV{"PROCDIR"} ) ) {
+       print "Error: (ListarW5) Variable de Ambiente PROCDIR no seteada.\n";
+       exit 1;
+    }
+    if ( ! exists( $ENV{"PROCDIR"} ) ) {
+       print "Error: (ListarW5) Directorio PROCDIR no existe.\n";
+       exit 1;
+    }
+
+    if ( exists( $ENV{"PROCDIR"} ) ) {
+        my $dir = $ENV{"PROCDIR"};
+
+        opendir(DIR, $dir) or die $!;
+
+        my @archivos_resultado
+                = grep { 
+                        /^resultados.[0-9]*$/
+                            && -f "$dir/$_"
+                        } readdir(DIR);
+
+        closedir(DIR);
+
+        foreach my $archivo ( @archivos_resultado ){
+            my $reg_count = 0;
+            my $pat_id = substr $archivo, index( $archivo, "." ) + 1;
+
+            my $path = $dir."/".$archivo;
+            open(FILE, $path ) or die ("Error: (ListarW5)\n");
+            my @contenido_archivo = <FILE>;
+            close(FILE);
+
+            foreach my $linea_archivo (@contenido_archivo) {
+                my @valores_resultado = split('\+\-\#\-\+',$linea_archivo);
+                my $cantidad_campos = @valores_resultado;
+                if ( $cantidad_campos == 4 ) {
+                    $resultados{ $pat_id }{ $reg_count } = { 
+                        ciclo     => $valores_resultado[ 0 ],
+                        nombre    => $valores_resultado[ 1 ],
+                        registro  => $valores_resultado[ 2 ],
+                        resultado => $valores_resultado[ 3 ],
+                    };
+                    $reg_count++;
+                } else {
+                    print "Warning! archivo: $archivo defectuoso.\n";
+                    print "Formato de linea inesperado:\n$linea_archivo\n";
+                }
+            }
+        }
+    }
+
+    return %resultados;
+}
 
 sub cargar_patrones {
 
@@ -228,50 +283,75 @@ sub cargar_patrones {
     return %patrones;
 }
 
+my $grabar_reporte_en = "";
 
-# Comienzo del programa principal
 
-my %opciones=();
-getopts("hgrx", \%opciones);
-
-# Opciones
-# Opción –h
-
-if ( defined $opciones{h} ) {
-    # muestra la ayuda del comando y sale
-    mensaje_ayuda();
-    exit 1;
-}
 
 
 #opcion -r
 
 my $linea_separadora = "-"x79;
+my %resultados = cargar_resultados(); 
 
 my %patrones = cargar_patrones();
 my %patrones_seleccionados = ();
 
+my %ciclos = get_ciclos();
+my %ciclos_seleccionados = ();
+
+my %archivos = get_archivos();
+my %archivos_seleccionados = ();
+
+resultados_patrones_ingresar_todos();
+resultados_archivos_ingresar_todos();
+resultados_ciclos_ingresar_todos();
+
+
+sub get_ciclos {
+    my %ciclos = ();
+
+    for my $pat_id ( keys %resultados ) {
+        for my $linea ( keys $resultados{ $pat_id } ){
+            my $ciclo = $resultados{ $pat_id }{ $linea }{ ciclo };
+            $ciclos{ $ciclo } = 1;
+        }
+    }
+    return %ciclos;
+}
+
+sub get_archivos {
+    my %archivos = ();
+    for my $pat_id ( keys %resultados ) {
+        for my $linea ( keys $resultados{ $pat_id } ){
+            my $archivo = $resultados{ $pat_id }{ $linea }{ nombre };
+            $archivos{ $archivo } = 1;
+        }
+    }
+    return %archivos;
+}
 
 my $proceso_listo = 0;
+
+sub resultados_generar_reporte;
+
 
 sub resultados_salir {
     exit 0;
 }
 
-my $proceso_estado = 0;
-
+#my $proceso_estado = 0;
+my $proceso_estado = "inicio";
 
 #..................
 sub resultados_welcome {
-    my $indent = " "x($proceso_estado * 2);
+    my $indent = " "x( 2 ) ;
     print $indent."Opcion de Listado de Resultados.\n";
     print $indent."Elija una opcion.\n";
 }
 
-#..................
+#..........................................................................
 sub resultados_ver_patrones {
-    #print "Patrones disponibles:\n";
-    $proceso_estado = 1;
+    $proceso_estado = "patrones_ver";
 }
 
 sub resultados_patrones_disponibles_y_elegidos {
@@ -287,10 +367,9 @@ sub resultados_patrones_disponibles_y_elegidos {
         print $indent.$indent."$pat_id: $pat_exp \n";
     }
 }
-
-#..................
+#..........................................................................
 sub resultados_patrones_ingresar {
-    $proceso_estado = 2;
+    $proceso_estado = "patrones_ingresar";
 }
 
 sub resultados_patrones_ingresar_callback {
@@ -299,11 +378,9 @@ sub resultados_patrones_ingresar_callback {
         $patrones_seleccionados{ $arg } = $patrones{ $arg };
     }
 }
-
-#..................
-
+#..........................................................................
 sub resultados_patrones_borrar {
-    $proceso_estado = 3;
+    $proceso_estado = "patrones_borrar";
 }
 
 sub resultados_patrones_borrar_callback {
@@ -312,117 +389,548 @@ sub resultados_patrones_borrar_callback {
         delete $patrones_seleccionados{ $arg };
     }
 }
+#..........................................................................
+sub resultados_patrones_todos {
+    $proceso_estado = "patrones_todos";
+}
 
+sub resultados_patrones_ingresar_todos {
+    for my $pat_id ( keys %patrones ) {
+        $patrones_seleccionados{ $pat_id } = $patrones{ $pat_id };
+    }
+}
 
+sub resultados_patrones_borrar_todos {
+    for my $pat_id ( keys %patrones_seleccionados ) {
+        delete $patrones_seleccionados{ $pat_id };
+    }
+}
+#..........................................................................
+
+sub resultados_ver_ciclos {
+    $proceso_estado = "ciclos_ver";
+}
+
+sub resultados_ciclos_disponibles_y_elegidos {
+    my $indent = " "x(2);
+    print $indent."Ciclos Disponibles:\n";
+    for my $ciclo ( keys %ciclos ) {
+        print $indent.$indent."$ciclo \n";
+    }
+    print $indent."Ciclos Seleccionados:\n";
+    for my $ciclo ( keys %ciclos_seleccionados ) {
+        print $indent.$indent."$ciclo \n";
+    }
+}
+#..........................................................................
+sub resultados_ciclos_ingresar {
+    $proceso_estado = "ciclos_ingresar";
+}
+
+sub resultados_ciclos_ingresar_callback {
+    my $arg = shift;
+    if ( defined $ciclos{ $arg } ) {
+        $ciclos_seleccionados{ $arg } = $ciclos{ $arg };
+    }
+}
+#..........................................................................
+sub resultados_ciclos_borrar {
+    $proceso_estado = "ciclos_borrar";
+}
+
+sub resultados_ciclos_borrar_callback {
+    my $arg = shift;
+    if ( defined $ciclos_seleccionados{ $arg } ) {
+        delete $ciclos_seleccionados{ $arg };
+    }
+}
+#..........................................................................
+sub resultados_ciclos_todos {
+    $proceso_estado = "ciclos_todos";
+}
+
+sub resultados_ciclos_ingresar_todos {
+    for my $ciclo ( keys %ciclos ) {
+        $ciclos_seleccionados{ $ciclo } = $ciclos{ $ciclo };
+    }
+}
+
+sub resultados_ciclos_borrar_todos {
+    for my $ciclo ( keys %ciclos_seleccionados ) {
+        delete $ciclos_seleccionados{ $ciclo };
+    }
+}
+#..........................................................................
+#..........................................................................
+
+sub resultados_ver_archivos {
+    $proceso_estado = "archivos_ver";
+}
+
+sub resultados_archivos_disponibles_y_elegidos {
+    my $indent = " "x(2);
+    print $indent."Archivos Disponibles:\n";
+    for my $archivo ( keys %archivos ) {
+        print $indent.$indent."$archivo \n";
+    }
+    print $indent."Archivos Seleccionados:\n";
+    for my $archivo ( keys %archivos_seleccionados ) {
+        print $indent.$indent."$archivo \n";
+    }
+}
+#..........................................................................
+sub resultados_archivos_ingresar {
+    $proceso_estado = "archivos_ingresar";
+}
+
+sub resultados_archivos_ingresar_callback {
+    my $arg = shift;
+    if ( defined $archivos{ $arg } ) {
+        $archivos_seleccionados{ $arg } = $archivos{ $arg };
+    }
+}
+#..........................................................................
+sub resultados_archivos_borrar {
+    $proceso_estado = "archivos_borrar";
+}
+
+sub resultados_archivos_borrar_callback {
+    my $arg = shift;
+    if ( defined $archivos_seleccionados{ $arg } ) {
+        delete $archivos_seleccionados{ $arg };
+    }
+}
+#..........................................................................
+sub resultados_archivos_todos {
+    $proceso_estado = "archivos_todos";
+}
+
+sub resultados_archivos_ingresar_todos {
+    for my $archivo ( keys %archivos ) {
+        $archivos_seleccionados{ $archivo } = $archivos{ $archivo };
+    }
+}
+
+sub resultados_archivos_borrar_todos {
+    for my $archivo ( keys %archivos_seleccionados ) {
+        delete $archivos_seleccionados{ $archivo };
+    }
+}
+#..........................................................................
 my %estado = (
-        0 => {
-           titulo => "Resultados",
-           accion => \&resultados_welcome,
-           anterior => 0,
-           navegacion => {
-                   'q' => \&resultados_salir,
-                   'p' => \&resultados_ver_patrones,
-                          },
-           descripcion => {
-                   'q' => "Salir",
-                   'p' => "Elegir Patron",
-                           }
-          },
-        1 => {
-           titulo => "Patrones",
-           accion => \&resultados_patrones_disponibles_y_elegidos,
-           anterior => 0,
-           navegacion => {
-                   'q' => \&resultados_salir,
-                   'a' => \&resultados_anterior,
-                   'i' => \&resultados_patrones_ingresar,
-                   'd' => \&resultados_patrones_borrar,
-                          },
-           descripcion => {
-                   'q' => "Salir",
-                   'a' => "Anterior",
-                   'i' => "Ingresar Nuevo",
-                   'd' => "Borrar Ingresado"
-                           }
-              },
-        2 => {
-           titulo => "Ingresar Patrones",
-           accion => \&resultados_patrones_disponibles_y_elegidos,
-           callback => \&resultados_patrones_ingresar_callback,
-           anterior => 1,
-           navegacion => {
-                   'q' => \&resultados_salir,
-                   'a' => \&resultados_anterior,
-                   'd' => \&resultados_patrones_borrar,
-                          },
-           descripcion => {
-                   'q' => "Salir",
-                   'a' => "Anterior",
-                   'd' => "Borrar Ingresado"
-                           }
-              },
-        3 => {
-           titulo => "Borrar Patrones",
-           accion => \&resultados_patrones_disponibles_y_elegidos,
-           callback => \&resultados_patrones_borrar_callback,
-           anterior => 1,
-           navegacion => {
-                   'q' => \&resultados_salir,
-                   'a' => \&resultados_anterior,
-                   'i' => \&resultados_patrones_ingresar,
-                          },
-           descripcion => {
-                   'i' => "Ingresar Nuevo",
-                   'i' => "Ingresar Nuevo",
-                   'q' => "Salir",
-                   'a' => "Anterior",
-                           }
-              }
+    inicio => {
+        titulo => "Resultados",
+        accion => \&resultados_welcome,
+        anterior => "inicio",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       },
+               'p' => {
+                   descripcion => "Elegir Patron",
+                   accion => \&resultados_ver_patrones,
+                       },
+               'c' => {
+                   descripcion => "Elegir Ciclos",
+                   accion => \&resultados_ver_ciclos,
+                       },
+               'f' => {
+                   descripcion => "Elegir Archivos",
+                   accion => \&resultados_ver_archivos,
+                       },
+               'r' => {
+                   descripcion => "Generar Reportes",
+                   accion => \&resultados_generar_reporte,
+                       },
+        },
+    },
+    "patrones_ver" => {
+        titulo => "Patrones",
+        accion => \&resultados_patrones_disponibles_y_elegidos,
+        anterior => "inicio",
+        opciones => {
+               'q' => { 
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       },
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+               'i' => {
+                   descripcion => "Ingresar Nuevo",
+                   accion => \&resultados_patrones_ingresar,
+                       },
+               'd' => {
+                   descripcion => "Borrar Ingresado",
+                   accion => \&resultados_patrones_borrar,
+                       },
+               't' => {
+                   descripcion => "Editar Todos",
+                   accion => \&resultados_patrones_todos,
+                       },
+        },
+    },
+    "patrones_ingresar" => {
+        titulo => "Ingresar Patrones",
+        accion => \&resultados_patrones_disponibles_y_elegidos,
+        callback => \&resultados_patrones_ingresar_callback,
+        anterior => "patrones_ver",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       }, 
+               'd' => {
+                   descripcion => "Borrar Ingresado",
+                   accion => \&resultados_patrones_borrar,
+                       },
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+        },
+    },
+    "patrones_borrar" => {
+        titulo => "Borrar Patrones",
+        accion => \&resultados_patrones_disponibles_y_elegidos,
+        callback => \&resultados_patrones_borrar_callback,
+        anterior => "patrones_ver",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       },
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+               'i' => {
+                   descripcion => "Ingresar Nuevo",
+                   accion => \&resultados_patrones_ingresar,
+                       },
+        },
+    },
+    "patrones_todos" => {
+        titulo => "Edicion Masiva de Patrones",
+        accion => \&resultados_patrones_disponibles_y_elegidos,
+        anterior => "patrones_ver",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       }, 
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+               'aa' => {
+                   descripcion => "Agregar Todos",
+                   accion => \&resultados_patrones_ingresar_todos,
+                       },
+               'da' => {
+                   descripcion => "Borrar Todos",
+                   accion => \&resultados_patrones_borrar_todos,
+                       },
+        },
+    },
+    "ciclos_ver" => {
+        titulo => "Ciclos",
+        accion => \&resultados_ciclos_disponibles_y_elegidos,
+        anterior => "inicio",
+        opciones => {
+               'q' => { 
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       },
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+               'i' => {
+                   descripcion => "Ingresar Nuevo",
+                   accion => \&resultados_ciclos_ingresar,
+                       },
+               'd' => {
+                   descripcion => "Borrar Ingresado",
+                   accion => \&resultados_ciclos_borrar,
+                       },
+               't' => {
+                   descripcion => "Editar Todos",
+                   accion => \&resultados_ciclos_todos,
+                       },
+        },
+    },
+    "ciclos_ingresar" => {
+        titulo => "Ingresar Ciclos",
+        accion => \&resultados_ciclos_disponibles_y_elegidos,
+        callback => \&resultados_ciclos_ingresar_callback,
+        anterior => "ciclos_ver",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       }, 
+               'd' => {
+                   descripcion => "Borrar Ingresado",
+                   accion => \&resultados_ciclos_borrar,
+                       },
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+        },
+    },
+    "ciclos_borrar" => {
+        titulo => "Borrar Ciclos",
+        accion => \&resultados_ciclos_disponibles_y_elegidos,
+        callback => \&resultados_ciclos_borrar_callback,
+        anterior => "ciclos_ver",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       },
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+               'i' => {
+                   descripcion => "Ingresar Nuevo",
+                   accion => \&resultados_ciclos_ingresar,
+                       },
+        },
+    },
+    "ciclos_todos" => {
+        titulo => "Edicion Masiva de Ciclos",
+        accion => \&resultados_ciclos_disponibles_y_elegidos,
+        anterior => "ciclos_ver",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       }, 
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+               'aa' => {
+                   descripcion => "Agregar Todos",
+                   accion => \&resultados_ciclos_ingresar_todos,
+                       },
+               'da' => {
+                   descripcion => "Borrar Todos",
+                   accion => \&resultados_ciclos_borrar_todos,
+                       },
+        },
+    },
+    "archivos_ver" => {
+        titulo => "Archivos",
+        accion => \&resultados_archivos_disponibles_y_elegidos,
+        anterior => "inicio",
+        opciones => {
+               'q' => { 
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       },
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+               'i' => {
+                   descripcion => "Ingresar Nuevo",
+                   accion => \&resultados_archivos_ingresar,
+                       },
+               'd' => {
+                   descripcion => "Borrar Ingresado",
+                   accion => \&resultados_archivos_borrar,
+                       },
+               't' => {
+                   descripcion => "Editar Todos",
+                   accion => \&resultados_archivos_todos,
+                       },
+        },
+    },
+    "archivos_ingresar" => {
+        titulo => "Ingresar Archivos",
+        accion => \&resultados_archivos_disponibles_y_elegidos,
+        callback => \&resultados_archivos_ingresar_callback,
+        anterior => "archivos_ver",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       }, 
+               'd' => {
+                   descripcion => "Borrar Ingresado",
+                   accion => \&resultados_archivos_borrar,
+                       },
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+        },
+    },
+    "archivos_borrar" => {
+        titulo => "Borrar Archivos",
+        accion => \&resultados_archivos_disponibles_y_elegidos,
+        callback => \&resultados_archivos_borrar_callback,
+        anterior => "archivos_ver",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       },
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+               'i' => {
+                   descripcion => "Ingresar Nuevo",
+                   accion => \&resultados_archivos_ingresar,
+                       },
+        },
+    },
+    "archivos_todos" => {
+        titulo => "Edicion Masiva de Archivos",
+        accion => \&resultados_archivos_disponibles_y_elegidos,
+        anterior => "archivos_ver",
+        opciones => {
+               'q' => {
+                   descripcion => "Salir",
+                   accion => \&resultados_salir,
+                       }, 
+               'a' => {
+                   descripcion => "Anterior",
+                   accion => \&resultados_anterior,
+                       },
+               'aa' => {
+                   descripcion => "Agregar Todos",
+                   accion => \&resultados_archivos_ingresar_todos,
+                       },
+               'da' => {
+                   descripcion => "Borrar Todos",
+                   accion => \&resultados_archivos_borrar_todos,
+                       },
+        },
+    },
+
 );
 
 sub resultados_anterior {
     $proceso_estado = $estado{ $proceso_estado }{anterior};
-#   my $param = shift;
-#   if ( $proceso_estado > 0 ) {
-#       $proceso_estado -= 1;
-#   }
 }
 
-while ( ! $proceso_listo ) {
+sub procesar_estado {
+    while ( ! $proceso_listo ) {
 
-    print "ListarW5: $estado{ $proceso_estado }{titulo}\n\n";
+        print "ListarW5: $estado{ $proceso_estado }{titulo}\n\n";
 
-    if ( defined $estado{ $proceso_estado }{accion} ) {
-        $estado{ $proceso_estado }{accion}->();
-    }
+        if ( defined $estado{ $proceso_estado }{accion} ) {
+            $estado{ $proceso_estado }{accion}->();
+        }
 
-    print "\n";
-    for my $accion ( keys $estado{ $proceso_estado }{descripcion} ) { 
-       my $descripcion = $estado{ $proceso_estado }{descripcion}{ $accion };
-       print "$accion => $descripcion\n";
-    }
+        print "\n";
 
-    print "Seleccion: ";
-    my $q = <STDIN>; chomp( $q );
+        for my $accion ( keys $estado{ $proceso_estado }{opciones} ) { 
+            my $desc=$estado{$proceso_estado}{opciones}{$accion}{descripcion};
+            print "$accion => $desc\n";
+        }
 
-    if ( defined $estado{ $proceso_estado }{navegacion}{ $q } ) {
-        $estado{ $proceso_estado }{navegacion}{ $q }->( $q );
-    } else {
-        if ( defined $estado{ $proceso_estado }{callback} ) {
+        print "Seleccion: ";
+        my $q = <STDIN>; chomp( $q );
+
+        if ( defined $estado{ $proceso_estado }{opciones}{ $q } ) {
+            $estado{ $proceso_estado }{opciones}{ $q }{accion}->( $q );
+        } else {
+            if ( defined $estado{ $proceso_estado }{callback} ) {
             $estado{ $proceso_estado }{callback}->( $q );
         } else {
-            print "Accion no disponible.\n";
+                print "Accion no disponible.\n";
+            }
+        }
+        print "\n$linea_separadora\n";
+    }
+
+}
+
+
+
+
+
+sub resultados_generar_reporte {
+    my $reporte = "";
+    $reporte .= "ListarW5:\nReporte opcion -r\n\nFiltos:\n";
+    $reporte .= "  Patrones:\n";
+    for my $patron ( keys %patrones_seleccionados ) {
+        $reporte .= "    $patron\n";
+    }
+
+    $reporte .= "\n";
+    $reporte .= "  Ciclos:\n";
+    for my $ciclo ( keys %ciclos_seleccionados ) {
+        $reporte .= "    $ciclo\n";
+    }
+
+    $reporte .= "\n";
+    $reporte .= "  Archivos:\n";
+    for my $archivo ( keys %archivos_seleccionados ) {
+        $reporte .= "    $archivo\n";
+    }
+
+
+    $reporte .= "\n";
+    $reporte .= "Resultados:\n";
+
+
+    for my $pat_id ( keys %resultados ) {
+        for my $linea ( keys $resultados{ $pat_id } ){
+            my $ciclo     = $resultados{ $pat_id }{ $linea }{ ciclo     };
+            my $nombre    = $resultados{ $pat_id }{ $linea }{ nombre    };
+            my $registro  = $resultados{ $pat_id }{ $linea }{ registro  };
+            my $resultado = $resultados{ $pat_id }{ $linea }{ resultado };
+
+            if ( defined $patrones_seleccionados{ $pat_id } ) {
+                if ( defined $ciclos_seleccionados{ $ciclo } ) {
+                    if ( defined $archivos_seleccionados{ $nombre } ) {
+                        $reporte .= "  Patron:   $pat_id\n";
+                        $reporte .= "  Ciclo:    $ciclo\n";
+                        $reporte .= "  Archivo:  $nombre\n";
+                        $reporte .= "  Registro: $resultado\n";
+                        $reporte .= "\n";
+                    }
+                }
+            }
         }
     }
 
-    print "\n$linea_separadora\n";
+    print $reporte;
+    
+    if ( $grabar_reporte_en ) {
+        
+        open  (MYFILE, '>>'.$grabar_reporte_en );
+        print MYFILE $reporte;
+        close (MYFILE); 
+
+    }
+
+    $proceso_listo = 1;
 }
 
+# Comienzo del programa principal
 
+my %opciones=();
+getopts("hgrx", \%opciones);
 
+# Opciones
+# Opción –h
 
-exit 0;
-my $grabar_reporte_en = "";
+if ( defined $opciones{h} ) {
+    # muestra la ayuda del comando y sale
+    mensaje_ayuda();
+    exit 0;
+}
 
 if ( defined $opciones{x} ) {
     if ( exists( $ENV{"REPODIR"} ) ) {
@@ -434,28 +942,22 @@ if ( defined $opciones{x} ) {
     }
 }
 
-
-if ( not defined $opciones{g} && not defined $opciones{r} ) {
-    print "ListarW5 Error. Ninguna opcion elegida.\n\n";
-    mensaje_ayuda();
-    exit 1;
-}
-
 if ( defined $opciones{g} && defined $opciones{r} ) {
     print "ListarW5 Error. opciones -g y -r mutuamente excluyentes.\n\n";
     mensaje_ayuda();
     exit 1;
 }
 
+if ( ( ! defined $opciones{g} ) && ( ! defined $opciones{r} ) ) {
+    print "ListarW5 Error. Ninguna opcion elegida.\n\n";
+    mensaje_ayuda();
+    exit 1;
+}
+
 if ( defined $opciones{g} ) {
-#           2.2. Opción –g (Opción default)
-#               • La consulta resolverá consultas sobre cantidad de 
-#                 hallazgos (RGLOBALES.PAT_ID)
+
 }
 
 if ( defined $opciones{r} ) {
-#           2.3. Opción –r
-#               • La consulta listará resultados extraídos de los
-#                 archivos RESULTADOS.PAT_ID
+    procesar_estado();
 }
-
