@@ -1,13 +1,24 @@
 #!/bin/bash
+####################################################################################################
 #Comando InstalaW5
+####################################################################################################
+#Realiza la Instalación del Sistema
+#Si la instalación se ha realizado con anterioridad informa si la instalación está completa,
+#y en caso que no lo esté completa la instalación con los parametros de instalación pasados
+#en la instalación anterior.
+#Todos los archivos de instalación necesarios ya sea para realizar una instalación nueva o para 
+#completar una instalación anterior se deben encontrar en el mismo directorio en donde se encuentra 
+#este archivo.
 #Codigos de salida:
 #		0: Normal
 #		1: Falta Perl
 #		2: Instalacion cancelada por el usuario
-#		3: Faltan archivos para realizar la instalacion		
-##########################################
-##            FUNCIONES                 ##
-##########################################
+#		3: Faltan archivos para realizar la instalacion	
+####################################################################################################
+	
+####################################################################################################
+##                                          FUNCIONES                                             ##
+####################################################################################################
 
 #Si Perl 5 o superior esta instalado imprime 
 #version y retorna 0, sino retorna 1
@@ -23,10 +34,12 @@ function ChequearPerl {
 			return 0;
 		fi
 	fi
-	echo "Para instalar el TP es necesario contar con Perl 5 o superior instalado. Efectue su instalacion e intentelo nuevamente"
-	echo "Proceso de Instalacion Cancelado"
+	Loguear "SE" "Para instalar el TP es necesario contar con Perl 5 o superior instalado. Efectue su instalacion e intentelo nuevamente" 0
+	Loguear "SE" "Proceso de Instalacion Cancelado" 0
 	return 1;
 }
+
+####################################################################################################
 
 #Define el directorio en la variable pasada como segundo
 #parametro, el primer parametro es el mensaje a mostrarse,
@@ -36,16 +49,22 @@ function DefinirDirectorio {
 	if [ -n ${!2} ]; then
 		eval "$2=$GRUPO$3"
 	fi
-	echo "${!1} (${!2}): "
+	Loguear "I" "${!1} (${!2}): " 0
 	read linea
 	if [ "$linea" != "" ]; then
+		Loguear "I" "El usuario ingresó: $linea" 1
 		if [[ $linea == /* ]]; then
 			eval "$2=$GRUPO$linea"
 		else
 			eval "$2=$GRUPO/$linea"
 		fi
+	else
+		Loguear "I" "El usuario ingresó el valor por omisión: $3" 1
 	fi
+
 }
+
+####################################################################################################
 
 #Define el valor de DATASIZE, si el valor definido por el usuario es mayor
 #al espacio libre, se le da la opción de ingresa un nuevo valor
@@ -53,7 +72,7 @@ function DefinirDirectorio {
 function DefinirDataSize {
 	ESPACIOLIBRE=0
 	while [ $ESPACIOLIBRE -lt $DATASIZE ]; do
-	echo "Defina el espacio mínimo libre para el arribo de archivos externos en MBytes ($DATASIZE):"
+	Loguear "I" "Defina el espacio mínimo libre para el arribo de archivos externos en MBytes ($DATASIZE):" 0
 	read linea
 	if [ "$linea" != "" ]; then
 		IsNumber $linea
@@ -63,7 +82,10 @@ function DefinirDataSize {
 			read linea
 			IsNumber $linea
 		done
+		Loguear "I" "El usuario ingresó: $linea" 1
 		DATASIZE=$linea
+	else
+		Loguear "I" "El usuario ingresó el valor por omisión: $DATASIZE" 1
 	fi
 	ARRIDIRTEMP=$ARRIDIR
 	while test ! -e $ARRIDIRTEMP; do
@@ -71,40 +93,51 @@ function DefinirDataSize {
 	done	
 		ESPACIOLIBRE=$(df -k $ARRIDIRTEMP | awk 'NR == 2 {print $4}')
 		if [ $ESPACIOLIBRE -lt $DATASIZE ]; then
-			echo "Insuficiente espacio en disco."
-			echo "Espacio disponible: $ESPACIOLIBRE Mb."
-			echo "Espacio requerido $DATASIZE Mb."
-			echo "Cancele la instalación e inténtelo más tarde o vuelva a intentarlo con otro valor."
+			Loguear "A" "Insuficiente espacio en disco." 0
+			Loguear "A" "Espacio disponible: $ESPACIOLIBRE Mb." 0
+			Loguear "A" "Espacio requerido $DATASIZE Mb." 0
+			Loguear "A" "Cancele la instalación e inténtelo más tarde o vuelva a intentarlo con otro valor." 0
+			Loguear "I" "Desea ingresar otro valor? (Si-No)" 1
 			while [ $linea!="Si" -a $linea!="No" ] 
 			do
 				echo "Desea ingresar otro valor? (Si-No)"
 			done
 			if [ $linea="No" ]; then
 				echo "Saliendo de la Instalación"
+				Loguear "I" "Instalacion cancelada por el usuario" 1
 				return 1
+			else
+				Loguear "I" "El usuario elegirá un nuevo valor para DATASIZE" 1
 			fi
 		fi
 	done
 	return 0
 }
 
+####################################################################################################
+
 #Crea todos los directorios que no existan de las rutas pasadas como parametro
 function CrearDirectorios {
 	for i in "$@"
 	do
-		if [ ! -d $i ]; then 
-			echo "$i"
+		if [ ! -d $i ]; then 			
 			mkdir -p -m777 $i
+			Loguear "I" "	$i" 0
 		fi
 	done
 }
 
+####################################################################################################
+
 #Imprime por salida estandar y en el archivo de log de instalación
-# Parametro 1: Tipo de Mensaje
-# Parametro 2: Mensaje
-# Parametro 3: 0 para imprimir por stdout y loguear, 1 solo para loguear
-function ImprimirYLoguear {
-	echo "$2"
+#Parametros:
+#		Parametro 1: Tipo de Mensaje
+#		Parametro 2: Mensaje
+#		Parametro 3: 0 para imprimir por stdout y loguear, 1 solo para loguear
+function Loguear {
+	if [ $3 -eq 0 ]; then	
+		echo "$2"
+	fi
 	$LOGW5/LoguearW5.sh "InstalaW5" "$1" "$2"
 }
 
@@ -128,7 +161,10 @@ function GuardarVariables {
 	echo "DATASIZE=$DATASIZE=$usuario=$fechaHora" >> "$CONFARCH"
 	echo "SECUENCIA1=0=$usuario=$fechaHora" >> "$CONFARCH"
 	echo "SECUENCIA2=0=$usuario=$fechaHora" >> "$CONFARCH"
+	Loguear "I" "Se guardaron las variables de ambiente en: $CONFARCH" 1
 }
+
+####################################################################################################
 
 #Carga las variables de ambiente del archivo de configuración
 function CargarVariables {
@@ -143,12 +179,15 @@ function CargarVariables {
 	done < "$CONFARCH"
 }
 
+####################################################################################################
+
 #Revisa la instalación del sistema en caso que ya haya sido instalado anteriormente
 #Determina si la instalación está completa o faltan archivos.
-#En caso que la instalación esté completa informa que está completa y retorna 0
-#En caso que la instalación esté incompleta informa que archivos o directorios faltan y retorna 1
-#En caso que la instalación esté incompleta pero no estén los archivos faltantes en la carpeta
-#de instalación para instalarse retorna 2
+#Valor de retorno:
+#			0: Instalación Completa
+#			1: Instalación Incompleta
+#			2: No se encuentran todos los archivos requeridos para completar la instalación
+#			3: Perl 5 o superior no está instalado
 function ChequearInstalacion {
 
 	#Si alguna variable no esta seteada o no existe la seteo al valor default
@@ -168,6 +207,21 @@ function ChequearInstalacion {
 	if [ -z $LOGSIZE ]; then LOGSIZE=400; fi
 	if [ -z $DATASIZE ]; then DATASIZE=100; fi	
 	
+	#Chequeo que se encuentre en $BINDIR o $GRUPO el archivo LoguearW5.sh
+	#Si no se encuentra sale de la instalación, si se encuentra, se setea la 
+	#variable LOGW5 a donde se encuentre
+	if [ -e $BINDIR/LoguearW5.sh ]; then
+		LOGW5=$BINDIR
+	elif [ -e $GRUPO/LoguearW5.sh ]; then
+		LOGW5=$GRUPO
+		#Seteo permiso de ejecucion al LoguearW5
+		chmod 755 $GRUPO/LoguearW5.sh
+	else
+		echo "No se encuentra el archivo LoguearW5.sh en $GRUPO. No se puede continuar con la instalación"
+		echo "Saliendo de la instalacion"		
+		return 2;
+	fi
+	Loguear "I" "Comando InstalaW5 Inicio de Ejecución" 1
 	#Chequeo que todos los directorios estén creados y tengan los 
 	#archivos que corresponden, los que no estén los agrego al array
 	#de faltantes
@@ -203,35 +257,34 @@ function ChequearInstalacion {
 
 	#Si no hay archivos ni directorios faltantes listo la ubicacion de todo y retorno 0
 	if [ ${#archfaltantes[@]} -eq 0 -a ${#dirfaltantes[@]} -eq 0 ]; then
-		LOGW5=$BINDIR
-		echo "Librería del Sistema: $CONFDIR"
-		if [ -e $CONFDIR/InstalaW5.conf ]; then echo "	InstalaW5.conf"; fi
-		if [ -e $CONFDIR/InstalaW5.log ]; then echo "	InstalaW5.log"; fi
-		echo "Ejecutables: $BINDIR"
+		Loguear "I" "Librería del Sistema: $CONFDIR" 0
+		Loguear "I" "	InstalaW5.conf" 0
+		Loguear "I" "	InstalaW5.log" 0
+		Loguear "I" "Ejecutables: $BINDIR" 0
 		for i in "${binarios[@]}"
 		do
-			echo "	$i"
+			Loguear "I" "	$i" 0
 		done
-		echo "Archivos Maestros: $MAEDIR"
+		Loguear "I" "Archivos Maestros: $MAEDIR" 0
 		for i in "${maestros[@]}"
 		do
-			echo "	$i"
+			Loguear "I" "	$i" 0
 		done
-		echo "Directorio de arribo de archivos externos: $ARRIDIR"
-		echo "Archivos externos aceptados: $ACEPDIR"
-		echo "Archivos externos rechazados: $RECHDIR"
-		echo "Archivos procesados: $PROCDIR"
-		echo "Reportes de salida: $REPODIR"
-		echo "Logs de auditoria del Sistema: $LOGDIR/<comando>$LOGEXT"
-		echo "Estado de la instalación: COMPLETA"
-		echo "Proceso de Instalación Cancelado"
+		Loguear "I" "Directorio de arribo de archivos externos: $ARRIDIR" 0
+		Loguear "I" "Archivos externos aceptados: $ACEPDIR" 0
+		Loguear "I" "Archivos externos rechazados: $RECHDIR" 0
+		Loguear "I" "Archivos procesados: $PROCDIR" 0
+		Loguear "I" "Reportes de salida: $REPODIR" 0
+		Loguear "I" "Logs de auditoria del Sistema: $LOGDIR/<comando>$LOGEXT" 0
+		Loguear "I" "Estado de la instalación: COMPLETA" 0
+		Loguear "I" "Proceso de Instalación Cancelado" 0
 		return 0
 	else
 		#Chequeo que Perl esté instalado
 		ChequearPerl
 		#Si no esta instalado salgo con 1
 		if [ $? -eq 1 ]; then
-			exit 1
+			return 3
 		fi
 		#Chequeo que se encuentren todos los archivos faltantes para instalar
 		#Si no estan salgo retornando 2		
@@ -241,59 +294,66 @@ function ChequearInstalacion {
 		fi
 
 		#Listo los componentes existentes y faltantes y retorno 1
-		echo "Componentes Existentes:"
+		Loguear "I" "Componentes Existentes:" 0
 		if [ -d $BINDIR ]; then
-			echo "	Ejecutables: $BINDIR"
+			Loguear "I" "	Ejecutables: $BINDIR" 0
 			for i in "${binarios[@]}"
 			do
 				if [ -e $BINDIR/$i ]; then
-					echo "		$i"
+					Loguear "I" "		$i" 0
 				fi
 			done
 		else
-			echo "	Ejecutables: Ninguno"
+			Loguear "I" "	Ejecutables: Ninguno" 0
 		fi
 		if [ -d $MAEDIR ]; then
-			echo "	Archivos Maestros: $MAEDIR"
+			Loguear "I" "	Archivos Maestros: $MAEDIR" 0
 			for i in "${maestros[@]}"
 			do
 				if [ -e $MAEDIR/$i ]; then
-					echo "		$i"
+					Loguear "I" "		$i" 0
 				fi
 			done
 		else
-			echo "	Archivos Maestros: Ninguno"
+			Loguear "I" "	Archivos Maestros: Ninguno" 0
 		fi
-		echo "Componentes faltantes:"
+		Loguear "I" "Componentes faltantes:" 0
 		for i in "${dirfaltantes[@]}"
 		do
-			echo "	$i"
+			Loguear "I" "	$i" 0
 		done
 		for i in "${archfaltantes[@]}"
 		do
-			echo "	$i"
+			Loguear "I" "	$i" 0
 		done
-		echo "Estado de la instalacion: INCOMPLETA"
+		Loguear "I" "Estado de la instalacion: INCOMPLETA" 0
 		return 1;
 	fi
 }
 
+####################################################################################################
+
 #Informa los directorios y datos con los que se procederá la instalación
 function InformarDatosInstalacion {
-	echo "Librería del Sistema: $CONFDIR"
-	echo "Ejecutables: $BINDIR"
-	echo "Archivos maestros: $MAEDIR"
-	echo "Directorio de arribo de archivos externos: $ARRIDIR"
-	echo "Espacio mínimo libre para arribos: $DATASIZE Mb"
-	echo "Archivos externos aceptados: $ACEPDIR"
-	echo "Archivos externos rechazados: $RECHDIR"
-	echo "Archivos procesados: $PROCDIR"
-	echo "Reportes de salida: $REPODIR"
-	echo "Logs de auditoria del Sistema: $LOGDIR/<comando>$LOGEXT"
-	echo "Tamaño máximo para los archivos del log del sistema: $LOGSIZE Kb"
+	Loguear "I" "Librería del Sistema: $CONFDIR" 0
+	Loguear "I" "Ejecutables: $BINDIR" 0
+	Loguear "I" "Archivos maestros: $MAEDIR" 0
+	Loguear "I" "Directorio de arribo de archivos externos: $ARRIDIR" 0
+	Loguear "I" "Espacio mínimo libre para arribos: $DATASIZE Mb" 0
+	Loguear "I" "Archivos externos aceptados: $ACEPDIR" 0
+	Loguear "I" "Archivos externos rechazados: $RECHDIR" 0
+	Loguear "I" "Archivos procesados: $PROCDIR" 0
+	Loguear "I" "Reportes de salida: $REPODIR" 0
+	Loguear "I" "Logs de auditoria del Sistema: $LOGDIR/<comando>$LOGEXT" 0
+	Loguear "I" "Tamaño máximo para los archivos del log del sistema: $LOGSIZE Kb" 0
 }
 
-#Retorna 0 si se encuentran todos los archivos instalables, caso contrario 1
+####################################################################################################
+
+#Chequea que se encuentren todos los archivos instalables pasados por parametro
+#Valor de retorno:
+#			0: Se encuentran todos los archivos
+#			1: No están todos los archivos
 function ChequearInstalables {
 	declare local contador
 	contador=0
@@ -301,35 +361,47 @@ function ChequearInstalables {
 	do
 		if [ ! -e $GRUPO/$i ]; then
 			if [ $contador -eq 0 ]; then
-				echo "No se encuentran los siguientes archivos de instalación en $GRUPO:"
+				Loguear "SE" "No se encuentran los siguientes archivos de instalación en $GRUPO:" 0
 			fi
-			echo "	$i"
+			Loguear "SE" "	$i" 0
 			let contador=contador+1
 		fi
 	done
 	if [ $contador -gt 0 ]; then
 		echo "Deben encontrarse todos los archivos de instalación necesarios en $GRUPO para proceder con la instalación"
 		echo "Para más información lea el archivo readme.txt"
-		echo "Saliendo de la instalación"
+		Loguear "SE" "Saliendo de la instalación" 0
 		return 1
 	fi
 	return 0
 }
 
+####################################################################################################
+
 #Mueve los archivos pasados desde el segundo parametro en 
-#adelante de $GRUPO al directorio pasado en el primer parametro
-#ambos directorios deben estar creados y los archivos deben existir
+#adelante de $GRUPO al directorio pasado en el primer parametro si no existen en
+#el directorio de destino
+#Ambos directorios deben estar creados y el archivo en $GRUPO debe existir
 function MoverArchivos {
 	for i in $(seq 2 $#)
 	do
 		if [ ! -e "$1/${!i}" ]; then
 			mv $GRUPO/${!i} $1
+			#Si estoy moviendo LoguearW5.sh seteo la variable LOGW5 al path donde lo movi
+			if [ ${!i} = "LoguearW5.sh" ]; then
+				LOGW5=$BINDIR
+			fi
+			Loguear "I" "	${!i}" 0
 		fi
 	done
 }
 
-#Chequea si el valor pasado por parametro es un numero.
-#Si es un numero devuelve 0, sino 1
+####################################################################################################
+
+#Chequea si el valor pasado por parametro es un numero entero
+#Valor de retorno:
+#			0: es un numero entero
+#			1: no es un numero entero
 function IsNumber {
 	if [[ $1 =~ ^[0-9]+$ ]]; then
 		return 0
@@ -337,12 +409,12 @@ function IsNumber {
 	return 1
 }
 
-############################################
-##             COMIENZO                   ##
-############################################
+####################################################################################################
+##                                          COMIENZO                                              ##
+####################################################################################################
 
 #Inicio de instalacion
-GRUPO=$PWD
+export GRUPO=$PWD
 INSTCONFDIR=$GRUPO/confdir
 
 INSTCONFPATH=$INSTCONFDIR/ConfPath.conf
@@ -366,18 +438,33 @@ fi
 #Si no existe el archivo de configuración quiere decir
 #que no se instalo nunca
 if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
+	#Chequeo que esté el LoguearW5 en $GRUPO, si no está salgo devolviendo 3
+	if [ -e $GRUPO/LoguearW5.sh ]; then
+		LOGW5=$GRUPO
+		#Seteo permiso de ejecucion al LoguearW5
+		chmod 755 $GRUPO/LoguearW5.sh
+	else
+		echo "No se encuentra el archivo LoguearW5.sh en $GRUPO. No se puede continuar con la instalación"
+		echo "Saliendo de la instalacion"		
+		exit 3;
+	fi
+
+	Loguear "I" "Comando InstalaW5 Inicio de Ejecución" 1
+
 	#Chequeo que estén todos los archivos de instalación, si falta alguno salgo
 	archivosInstalacion=( IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD patrones sistemas )
 	ChequearInstalables ${archivosInstalacion[@]}
-	if [ $? -eq 1 ]; then 
+	if [ $? -eq 1 ]; then
+		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
 		exit 3
 	fi
-	#Seteo LOGW5 al path donde esta el comando LoguearW5.sh
-	LOGW5=$GRUPO
+	
+	
 	#Chequeo que este instalado Perl
 	ChequearPerl
 	#Si no esta instalado salgo con 1
 	if [ $? -eq 1 ]; then
+		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
 		exit 1
 	fi
 	#Defino datos de instalacion
@@ -395,7 +482,8 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 		DATASIZE=100
 		DefinirDataSize
 		if [ $? -eq 1 ]; then
-			echo "Instalacion cancelada por el usuario"
+			Loguear "I" "Instalacion cancelada por el usuario" 1
+			Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
 			exit 2
 		fi
 		MSG="Defina el directorio de grabación de los archivos externos rechazados"
@@ -407,7 +495,7 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 		LOGDIR=$GRUPO/log
 		LOGEXT=.log
 		LOGSIZE=400
-		echo "Defina el tamaño máximo para los archivos $LOGEXT en Kbytes ($LOGSIZE): "
+		Loguear "I" "Defina el tamaño máximo para los archivos $LOGEXT en Kbytes ($LOGSIZE): " 0
 		read linea
 		if [ "$linea" != "" ]; then
 			IsNumber $linea
@@ -417,19 +505,23 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 				read linea
 				IsNumber $linea
 			done
+			Loguear "I" "El usuario ingresó: $linea" 1
 			LOGSIZE=$linea
+		else
+			Loguear "I" "El usuario ingresó el valor por omisión: $LOGSIZE" 1
 		fi
 		MSG="Defina el directorio de grabación de los reportes de salida"
 		DefinirDirectorio MSG REPODIR /reportes
 		clear
 		InformarDatosInstalacion
-		echo "Estado de la instalacion: LISTA"
+		Loguear "I" "Estado de la instalacion: LISTA" 0
+		Loguear "I" "Los datos ingresados son correctos? (Si-No)" 1
 		while [ "$RESPUESTA" != "Si" -a "$RESPUESTA" != "No" ]
 		do
 			echo "Los datos ingresados son correctos? (Si-No)"
 			read RESPUESTA
 		done
-
+		Loguear "I" "El usuario ingresó: $RESPUESTA" 1
 		if [ "$RESPUESTA" = "No" ]; then
 			RESPUESTA=
 			clear
@@ -438,64 +530,74 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 else
 	#Cargo las variables del archivo de configuracion
 	CargarVariables
-	#Chequeo donde está LoguearW5.sh y seteo la variable LOGW5 al path
-	#en que se encuentre, si no se encuentra sale de la instalacion
-	#devolviendo 4
-	
+		
 	#Chequeo en que estado quedó la instalacion anterior
 	ChequearInstalacion
 	salida=$?
 	#Si la instalacion esta completa salgo con 0
 	if [ $salida -eq 0 ]; then
+		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
 		exit 0
 	fi
 	#Si no estan todos los archivos de instalacion necesarios salgo con 3
 	if [ $salida -eq 2 ]; then
+		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
 		exit 3
 	fi
+	#Si Perl no está instalado salgo con 1
+	if [ $salida -eq 3 ]; then
+		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+		exit 1
+	fi
 	RESPUESTA=
+	Loguear "I" "Se procederá a la instalación de los componentes faltantes. Continuar? (Si-No)" 1
 	while [ "$RESPUESTA" != "Si" -a "$RESPUESTA" != "No" ]
 	do
 		echo "Se procederá a la instalación de los componentes faltantes. Continuar? (Si-No)"
 		read RESPUESTA	
 	done
 	#Sale con 2 si el usuario no quiere proseguir con la instalacion
+	Loguear "I" "El usuario ingresó: $RESPUESTA" 1
 	if [ "$RESPUESTA" = "No" ]; then
-		echo "Instalacion de componentes faltantes finalizada por el usuario"
+		Loguear "I" "Instalacion cancelada por el usuario" 0
+		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
 		exit 2
 	fi
 	clear
 	InformarDatosInstalacion
-	echo "La instalación se llevará a cabo con estos datos."
+	Loguear "I" "La instalación se llevará a cabo con estos datos." 0
 fi
 RESPUESTA=
+Loguear "I" "Iniciando Instalación. Esta Ud seguro? (Si-No)" 1
 while [ "$RESPUESTA" != "Si" -a "$RESPUESTA" != "No" ]
 do
 	echo "Iniciando Instalación. Esta Ud seguro? (Si-No)"
 	read RESPUESTA
 done
+Loguear "I" "El usuario ingresó: $RESPUESTA" 1
 #Salgo con 2 si el usuario no quiere proseguir con la instalacion
 if [ "$RESPUESTA" = "No" ]; then
-	echo "Instalacion cancelada por el usuario"
+	Loguear "I" "Instalacion cancelada por el usuario" 0
+	Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
 	exit 2
 fi
 
 #Comienza la instalacion
-echo "Creando Estructura de directorios. . . ."
+Loguear "I" "Creando Estructura de directorios. . . ." 0
 CrearDirectorios $BINDIR $MAEDIR $ARRIDIR $RECHDIR $ACEPDIR $PROCDIR $LOGDIR $REPODIR $CONFDIR $TEMPDIR
 
-echo "Instalando Archivos Maestros"
+Loguear "I" "Instalando Archivos Maestros. . . ." 0
 MoverArchivos $MAEDIR patrones sistemas
 
-echo "Instalando Programas y Funciones"
+Loguear "I" "Instalando Programas y Funciones. . . ." 0
 MoverArchivos $BINDIR IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD
 
 echo "$CONFDIR" > $INSTCONFPATH
-#Seteo LOGW5 al path donde esta el comando LoguearW5.sh
-LOGW5=$BINDIR
-echo "Actualizando la configuración del sistema"
+Loguear "I" "Actualizando la configuración del sistema. . . ." 0
 GuardarVariables
 
-echo "Instalación Concluida"
-
+Loguear "I" "Instalación Concluida" 0
+Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
 exit 0
+
+####################################################################################################
