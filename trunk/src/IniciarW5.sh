@@ -11,8 +11,8 @@ do
 	#verifica que iniciar no haya sido ejecutado antes
 	if [ -e "$ARCH_BLOQUEO_INICIAR" ]; then
 	#escribe un mensaje en el log indicando que iniciar ya fue ejecutado en esta sesión, muestra el estado de los componentes y sale
-		${BINDIR}/LoguearW5.sh "IniciarW5" I "Inicio de ejecución"
-		${BINDIR}/LoguearW5.sh "IniciarW5" E "Se intentó inicializar un ambiente ya inicializado"
+		LoguearW5.sh "IniciarW5" I "Inicio de ejecución"
+		LoguearW5.sh "IniciarW5" E "Se intentó inicializar un ambiente ya inicializado"
 
 		echo "Componentes existentes:"
 		declare -a NULLS=()
@@ -41,7 +41,7 @@ do
 			echo "Estado del sistema: INICIALIZADO"
 		fi
 
-		${BINDIR}/LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
+		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
 		echo "No está permitido reinicializar el sistema"
 		read -p "Presione Enter para salir..."
 		break
@@ -74,9 +74,9 @@ do
 	PATH=${PATH}:${BINDIR}
 
 	#inicializa el log
-	if [ -d "$LOGDIR" ]; then chmod u+wr "$LOGDIR"
+	if [ -d "${LOGDIR}" ]; then chmod u+wr "${LOGDIR}"
 	else
-		echo "Faltan componentes. Fin de la ejecución"
+		echo "No se encuentra el directorio de logueo. Fin de la ejecución"
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -122,7 +122,7 @@ do
 	else
 		LoguearW5.sh "IniciarW5" SE "Archivo maestro no encontrado"
 		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
-		echo "Faltan componentes. Fin de la ejecución"
+		echo "Faltan archivos maestros. Fin de la ejecución"
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -130,34 +130,34 @@ do
 	#verifica los ejecutables
 	faltan_binarios=false
 	if [ -d "$BINDIR" ]; then
-		if [ "$(ls ${BINDIR} | grep "DetectaW5.sh")" ]; then chmod u+rx "${BINDIR}/DetectaW5.sh"
+		if [ "$(ls "${BINDIR}" | grep "DetectaW5.sh")" ]; then chmod u+rx "${BINDIR}/DetectaW5.sh"
 		else faltan_binarios=true; fi
-		if [ "$(ls ${BINDIR} | grep "BuscarW5.sh")" ]; then chmod u+rx "${BINDIR}/BuscarW5.sh"
+		if [ "$(ls "${BINDIR}" | grep "BuscarW5.sh")" ]; then chmod u+rx "${BINDIR}/BuscarW5.sh"
 		else faltan_binarios=true; fi
-		if [ "$(ls ${BINDIR} | grep "ListarW5.pl")" ]; then chmod u+rx "${BINDIR}/ListarW5.pl"
+		if [ "$(ls "${BINDIR}" | grep "ListarW5.pl")" ]; then chmod u+rx "${BINDIR}/ListarW5.pl"
 		else faltan_binarios=true; fi
-		if [ "$(ls ${BINDIR} | grep "MoverW5.sh")" ]; then chmod u+rx "${BINDIR}/MoverW5.sh"
+		if [ "$(ls "${BINDIR}" | grep "MoverW5.sh")" ]; then chmod u+rx "${BINDIR}/MoverW5.sh"
 		else faltan_binarios=true; fi
-		if [ "$(ls ${BINDIR} | grep "LoguearW5.sh")" ]; then chmod u+rx "${BINDIR}/LoguearW5.sh"
+		if [ "$(ls "${BINDIR}" | grep "LoguearW5.sh")" ]; then chmod u+rx "${BINDIR}/LoguearW5.sh"
 		else faltan_binarios=true; fi
-		if [ "$(ls ${BINDIR} | grep "MirarW5.sh")" ]; then chmod u+rx "${BINDIR}/MirarW5.sh"
+		if [ "$(ls "${BINDIR}" | grep "MirarW5.sh")" ]; then chmod u+rx "${BINDIR}/MirarW5.sh"
 		else faltan_binarios=true; fi
-		if [ "$(ls ${BINDIR} | grep "StopD.sh")" ]; then chmod u+rx "${BINDIR}/StopD.sh"
+		if [ "$(ls "${BINDIR}" | grep "StopD")" ]; then chmod u+rx "${BINDIR}/StopD"
 		else faltan_binarios=true; fi
-		if [ "$(ls ${BINDIR} | grep "StartD.sh")" ]; then chmod u+rx "${BINDIR}/StartD.sh"
+		if [ "$(ls "${BINDIR}" | grep "StartD")" ]; then chmod u+rx "${BINDIR}/StartD"
 		else faltan_binarios=true; fi
 	
 		if ${faltan_binarios} ; then
 			LoguearW5.sh "IniciarW5" SE "Binarios no encontrados"
 			LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
-			echo "Faltan componentes. Fin de la ejecución"
+			echo "Faltan archivos binarios. Fin de la ejecución"
 			read -p "Presione Enter para salir..."
 			break
 		fi
 	else
 		LoguearW5.sh "IniciarW5" SE "Directorio de binarios no encontrado"
 		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
-		echo "Faltan componentes. Fin de la ejecución"
+		echo "No se encuentra el directorio de binarios. Fin de la ejecución"
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -178,7 +178,7 @@ do
 	if ${faltan_carpetas} ; then
 		LoguearW5.sh "IniciarW5" SE "Directorios no encontrados"
 		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
-		echo "Faltan componentes. Fin de la ejecución"
+		echo "Faltan directorios del sistema. Fin de la ejecución"
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -186,12 +186,12 @@ do
 	###################################################################
 
 	#si no estaba ya iniciado, invoca a DetectaW5, y luego verifica que se esté ejecutando 
-	if [ ps ax | grep -v grep | grep 'DetectaW5' > '/dev/null' ]; then
+	if [ `ps ax | grep -v grep | grep 'DetectaW5' > '/dev/null'` ]; then
 		LoguearW5.sh "IniciarW5" A "DetectaW5 ya estaba en ejecución"
 		LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
 	else
-		StartD.sh
-		if [ ps ax | grep -v grep | grep 'DetectaW5' > '/dev/null' ]; then
+		StartD
+		if [ `ps ax | grep -v grep | grep 'DetectaW5' > '/dev/null'` ]; then
 			PID_DETECTA=´pidof DetectaW5.sh´
 			LoguearW5.sh "IniciarW5" I "Demonio corriendo bajo el nro. ${PID_DETECTA}"
 			LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
