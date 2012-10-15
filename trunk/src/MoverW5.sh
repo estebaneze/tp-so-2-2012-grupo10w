@@ -16,10 +16,10 @@ function moverW5 {
 			if [ -d $2 ]
 			then
 				SEC=$(ls $2 | grep $(basename $1) | cut -d. -f3 | tail -1)
-				((SEC++))
+				SEC=$(expr $SEC + 1)
 
 				NEWPATH=$2"/"$(basename $1)"."$SEC
-				cp $1 $NEWPATH
+				mv $1 $NEWPATH
 
 				# GUARDO EN EL ARCHIVO DE LOG
 				${BINDIR}/LoguearW5.sh $3 "I" "Copiado $1 a $2"
