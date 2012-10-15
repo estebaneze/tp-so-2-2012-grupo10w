@@ -7,7 +7,7 @@ function moverW5 {
 	if [ $# -lt 2 ]
 	then
 		
-		${BINDIR}/LoguearW5.sh $3 "E" "No se puede mover. Argumentos Insuficientes"
+		${BINDIR}/LoguearW5.sh $3 "E" "Error al mover. Argumentos Insuficientes"
 		echo "Argumentos insuficientes" 1>&2
 		return 1
 	else
@@ -26,13 +26,13 @@ function moverW5 {
 				return 0
 			else
 				
-				${BINDIR}/LoguearW5.sh $3 "E" "No se puede mover. No existe el directorio $2"
-				echo "ERROR: NO EXISTE EL DIRECTORIO $2"
+				${BINDIR}/LoguearW5.sh $3 "E" "Error al mover. No existe el directorio $2"
+				echo "No existe el directorio $2" 1>&2
 				return 1
 			fi
 		else
-			${BINDIR}/LoguearW5.sh $3 "E" "No se puede mover. No existe el archivo $1"
-			echo "ERROR: NO EXISTE EL ARCHIVO $1"
+			${BINDIR}/LoguearW5.sh $3 "E" "Error al mover. No existe el archivo $1"
+			echo "No existe el archivo $1" 1>&2
 			return 1
 		fi
 
