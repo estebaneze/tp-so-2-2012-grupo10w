@@ -1,33 +1,39 @@
 * InstalaW5:
-	- Este comando realiza la instalación del sistema.
-	- Para realizar la instalación por primera vez se deben seguir los siguientes pasos:
-		1. Crear en el directorio corriente del usuario un subdirectorio grupo10w.
-		2. Copiar el archivo Grupo10TemaW.tar en el subdirectorio creado.
-		3. Extraer los archivos del tar.
-		4. Ejecutar el comando InstalaW5.sh.
-		5. El comando le solicitará los datos necesarios para realizar la instalación.
-		   Si no se especifica algún dato se usarán los valores por defecto.
-		6. Una vez ingresado todos los datos se mostrarán los datos ingresados y se le 
-       preguntará si estos son correctos. Si responde "No" podrá ingresarlos nuevamente.
-       Si responde "Si" se sigue con el siguiente paso de la instalación.
-		7. Se le informará que la instalación está por iniciarse y se le preguntará si
-		   quiere proseguir. Si responde "Si" se sigue con el siguiente paso, si responde
-		   "No" se saldrá de la instalación.
-		8. Se efectúa la instalación del sistema y se le notificará que se ha realizado
-		   correctamente. Las variables de ambiente del sistema se guardan en el archivo
-       InstalaW5.conf ubicado en el subdirectorio "conf" dentro del directorio donde
-       se encuentran los binarios del sistema. El log de la instalación del sistema
-       se encuentra en grupo10w/confdir/InstalaW5.log
-	- Para comprobar si la instalación está completa o instalar componentes faltantes se 
-	  deben seguir los siguientes pasos:
-		1. Ejecutar el comando InstalaW5.sh.
-		2. En el caso de que la instalación esté completa se le informará y se detallará
-		   la ubicación de cada componente. En caso que la instalación no esté completa
-		   se detallaran los componentes faltantes y se le propondrá realizar la instalación
-		   de estos. Para poder realizar la instalación de los componentes faltantes
-		   estos deben estar en el mismo directorio que InstalaW5.sh. En caso de que 
-		   no estén cancele la instalación y extraiga estos componentes del archivo
-		   Grupo10TemaW.tar.
+   - Este comando realiza la instalación del sistema.
+   - Para realizar la instalación por primera vez se deben seguir los
+     siguientes pasos:
+     1. Crear en el directorio corriente del usuario un subdirectorio
+        grupo10w.
+     2. Copiar el archivo Grupo10TemaW.tar en el subdirectorio creado.
+     3. Extraer los archivos del tar.
+     4. Ejecutar el comando InstalaW5.sh.
+     5. El comando le solicitará los datos necesarios para realizar 
+        la instalación. Si no se especifica algún dato se usarán los 
+        valores por defecto.
+     6. Una vez ingresado todos los datos se mostrarán los datos ingresados
+        y se le preguntará si estos son correctos. Si responde "No" podrá 
+        ingresarlos nuevamente. Si responde "Si" se sigue con el siguiente
+       paso de la instalación.
+     7. Se le informará que la instalación está por iniciarse y se le
+        preguntará si quiere proseguir. Si responde "Si" se sigue con el
+        siguiente paso, si responde "No" se saldrá de la instalación.
+     8. Se efectúa la instalación del sistema y se le notificará que se
+        ha realizado correctamente. Las variables de ambiente del sistema
+        se guardan en el archivo "InstalaW5.conf" ubicado en el subdirectorio
+        "conf" dentro del directorio donde se encuentran los binarios del
+        sistema. El log de la instalación del sistema se encuentra en 
+        grupo10w/confdir/InstalaW5.log
+   - Para comprobar si la instalación está completa o instalar componentes
+     faltantes se deben seguir los siguientes pasos:
+     1. Ejecutar el comando InstalaW5.sh.
+     2. En el caso de que la instalación esté completa se le informará y
+        se detallará la ubicación de cada componente. En caso que la 
+        instalación no esté completa se detallaran los componentes
+        faltantes y se le propondrá realizar la instalación de estos.
+        Para poder realizar la instalación de los componentes faltantes
+        estos deben estar en el mismo directorio que InstalaW5.sh. En caso 
+        de que no estén cancele la instalación y extraiga estos componentes
+        del archivo Grupo10TemaW.tar.
 
 * IniciarW5:
 
