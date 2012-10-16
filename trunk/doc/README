@@ -109,3 +109,13 @@
 
 	~$ . /home/usuario/bindir/ListarW5.pl { -r | -g } [ -x ] [ -h ]
 
+* Terminar:
+
+	- Es el comando encargado de limpiar los archivos temporales del sistema
+	- Debe ejecutarse cuando ya se termino de usar el sistema, antes de salir, 
+      para evitar conflictos en próximas ejecuciones.
+
+		Ejemplo:
+
+	~$ /home/usuario/bindir/Terminar.sh
+
