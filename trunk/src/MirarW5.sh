@@ -4,6 +4,8 @@
 
 function mirarW5 {
 
+COMANDO=$BASH_ARGV     # Comprobar solo Bash >= 3.0
+ARCH=$LOGDIR"/"$COMANDO$LOGEXT
 NLINES=
 FIND=
 ONLY=
