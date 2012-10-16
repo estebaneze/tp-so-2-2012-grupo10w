@@ -32,7 +32,17 @@ elif [ -z $CONFDIR ]; then
 fi
 
 #verifico existencia de directorios
-if [ ! -d $GRUPO$ARRIDIR -o ! -d $GRUPO$RECHDIR -o ! -d $GRUPO$ACEPDIR -o ! -d $GRUPO$PROCDIR -o ! -d $GRUPO$MAEDIR -o ! -d $GRUPO$CONFDIR ]; then
+if [ ! -d $GRUPO$ARRIDIR ]; then
+        error_ambiente=true
+elif [ ! -d $GRUPO$RECHDIR ]; then
+        error_ambiente=true
+elif [ ! -d $GRUPO$ACEPDIR ]; then
+        error_ambiente=true
+elif [ ! -d $GRUPO$PROCDIR ]; then
+        error_ambiente=true
+elif [ ! -d $GRUPO$MAEDIR ]; then
+        error_ambiente=true
+elif [ ! -d $GRUPO$CONFDIR ]; then
         error_ambiente=true
 fi
 
@@ -52,10 +62,11 @@ ls -1p $GRUPO$ACEPDIR | grep -v /\$ > .temp_archivosB
 cant_archivos=$(wc -l < .temp_archivosB)
 
 #Busco numero de ciclo en archivo de configuracion y lo actualizo
-nro_ciclo=$(grep 'SECUENCIA2=[0-9]' $GRUPO$CONFARCH | sed 's/\(SECUENCIA2=\)\([0-9][0-9]*\)/\2/' ) 
-nro_ciclo=`expr $nro_ciclo + 1`
+nro_ciclo=$(grep -o 'SECUENCIA2=[0-9][0-9]*' $GRUPO$CONFARCH | cut -d \= -f 2 ) 
+let nro_ciclo+=1
 
-sed 's/\(SECUENCIA2=\)\([0-9][0-9]*\)/\1'${nro_ciclo}'/'  $GRUPO$CONFARCH
+var="sed -s 's/SECUENCIA2\=[0-9][0-9]*/SECUENCIA2\=${nro_ciclo}/'  ${GRUPO}${CONFARCH}"
+evalsed=$(eval $var)
 
 #Inicializar el log
 sh LoguearW5.sh "BuscarW5" "I" "Inicio BuscarW5 - Ciclo Nro.: ${nro_ciclo} - Cantidad de Archivos ${cant_archivos}"
@@ -169,7 +180,8 @@ while read linea; do
 	fi
 
 	#comentar lo que sigue cuando se integre
-	mv $GRUPO$ACEPDIR/$linea $GRUPO$PROCDIR/$linea
+	#MoverW5.sh
+	#mv $GRUPO$ACEPDIR/$linea $GRUPO$PROCDIR/$linea
 	
 done < .temp_archivosB
 
