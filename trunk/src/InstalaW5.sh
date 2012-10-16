@@ -232,7 +232,7 @@ function ChequearInstalacion {
 	declare -a maestros
 	declare -a dirfaltantes
 	directorios=( $BINDIR $MAEDIR $ARRIDIR $ACEPDIR $RECHDIR $PROCDIR $REPODIR $LOGDIR )
-	binarios=( IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD )
+	binarios=( IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD Terminar.sh )
 	maestros=( patrones sistemas )
 
 	#Reviso si hay archivos o directorios faltantes
@@ -452,7 +452,7 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 	Loguear "I" "Comando InstalaW5 Inicio de Ejecución" 1
 
 	#Chequeo que estén todos los archivos de instalación, si falta alguno salgo
-	archivosInstalacion=( IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD patrones sistemas )
+	archivosInstalacion=( IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD patrones sistemas Terminar.sh )
 	ChequearInstalables ${archivosInstalacion[@]}
 	if [ $? -eq 1 ]; then
 		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
@@ -590,7 +590,7 @@ Loguear "I" "Instalando Archivos Maestros. . . ." 0
 MoverArchivos $MAEDIR patrones sistemas
 
 Loguear "I" "Instalando Programas y Funciones. . . ." 0
-MoverArchivos $BINDIR IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD
+MoverArchivos $BINDIR IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD Terminar.sh
 
 echo "$CONFDIR" > $INSTCONFPATH
 Loguear "I" "Actualizando la configuración del sistema. . . ." 0
