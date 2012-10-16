@@ -45,11 +45,11 @@ fi
 
 #si comando que llama Instalar => directorio conf
 if [ $comando = "InstalaW5" ]; then
-	directorioLogPar="conf"
+	directorioLogPar="$GRUPO/confdir"
 else
 	# estan definido? Sino => valor default
 	if [ -z "$directorioLogPar" ]; then
-		directorioLogPar="logdir"
+		directorioLogPar="$GRUPO/logdir"
 	fi
 fi
 
@@ -65,7 +65,7 @@ if [ -z "$tamanoLogPar" ]; then
 fi
 
 #path de la carpeta de logueo
-logPath="$GRUPO/$directorioLogPar"
+logPath="$directorioLogPar"
 
 #si no existe carpeta logueo, la creo
 if [ ! -d "$logPath" ]; then
@@ -75,6 +75,7 @@ fi
 nombreArchivoLog="$comando$extensionLogPar"
 archivoLog="$logPath/$nombreArchivoLog"
 
+#formato data (yyyyMMdd hh:mm:ss)
 when=$(date '+%Y%m%d %T')
 who=$(whoami)
 where=$comando
