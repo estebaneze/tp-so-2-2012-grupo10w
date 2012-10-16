@@ -128,3 +128,22 @@
 
 	~$ /home/usuario/bindir/LoguearW5.sh "DetectarW5" "I" "Se movio el archivo al directorio de aceptados"
 
+* Mover:
+
+  - Función que realiza el movimiento de un archivo a un directorio, considerando que ya exista uno con tal nombre.
+  - Se asigna un numero de secuencia al archivo, el cual incrementa con cada aparición del mismo.
+  
+* Mirar:
+
+  - Función que permite visualizar los archivos de log de forma mas entendible.
+  - Deben estar definidas las variables LOGDIR y LOGEXT previamente.
+  - Permite 3 opciones:
+    > -n# o -#, donde "#" es una cantidad arbitraria de numeros (la misma que la soportada por el comando 'tail' de bash).
+     Indica que solo se visualicen las ultimas '#' lineas del archivo de logueo.
+    > -g"...", donde "..." es cualquier cadena de caracteres.
+     Permite filtrar las lineas del archivo de log para que se muestren sólo las que contengan la cadena "...".
+     IMPORTANTE: Si se utiliza la opción -n y la -g juntas, primero se tomaran las últimas '#' líneas del archivo
+     de log y luego se filtraran las que contengan la cadena buscada.
+    > -o"...", donde "..." es alguno de los tipos de error del archivo de log.
+     Permite filtrar sólo las entradas del log que correspondan a un tipo de aviso (I, A, E, SE).
+     De la misma forma, si se utiliza con la opcion -n, primero se toman las últimas líneas y luego se aplica -o.
