@@ -149,9 +149,14 @@ while read linea; do
 				elif [ "$pat_con" = "caracter" ]; then
 			
 					while read linealog; do
+						echo $linealog >> .buslinea
+						nro_linealog=$(grep -o "^[0-9][0-9]*" .buslinea)
+						#echo "despues " $linealog
+						rm .buslinea
+						echo $linealog | sed "s/^[0-9][0-9]*://" >>.bus
 
-						nro_linealog=$(echo -e $linealog | cut -d \: -f 1)
-						echo $linealog|cut -d \: -f 2 >> .bus				
+							
+						#cat .bus			
 						expre="grep -bo $pat_exp .bus|cut -d\: -f 1" 
 						pos_hallado=$(eval $expre) 
 						let pos_hallado+=1
@@ -161,6 +166,8 @@ while read linea; do
 						let desdecar+=desde
 						let hastacar+=desdecar
 						let hastacar+=cuantos
+						let hastacar-=1
+						#echo " archivo: $linea	caracterpatron $pat_exp	nrolineaarch: $nro_linealog	desde $desde hasta $nhasta cuantos $cuantos poshallado $pos_hallado hastacar $hastacar desdecar $desdecar"
 
 						hallado=$(echo $linealog|cut -d \: -f 2|cut -c$desdecar-$hastacar) 
 						rm .bus
