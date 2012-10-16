@@ -27,6 +27,13 @@ comando=$1
 tipoMensaje=$2
 mensaje=$3
 
+directorioLogPar=$LOGDIR
+extensionLogPar=$LOGEXT
+tamanoLogPar=$LOGSIZE
+
+#elimino espacion repetidos 
+mensaje=`echo $mensaje | sed "s/ +/ /g"`                      
+
 #tamano maximo mensaje 120 caracteres
 mensaje=`echo $mensaje | cut -c -120`
 
@@ -38,37 +45,37 @@ fi
 
 #si comando que llama Instalar => directorio conf
 if [ $comando = "InstalaW5" ]; then
-	LOGDIR="conf"
+	directorioLogPar="conf"
 else
 	# estan definido? Sino => valor default
-	if [ -z "$LOGDIR" ]; then
-		LOGDIR="logdir"
+	if [ -z "$directorioLogPar" ]; then
+		directorioLogPar="logdir"
 	fi
 fi
 
 
 #extension definido? Sino => valor default
-if [ -z "$LOGEXT" ]; then
-        LOGEXT="log"
+if [ -z "$extensionLogPar" ]; then
+        extensionLogPar=".log"
 fi
 
 #tamano definido? Sino => valor default
-if [ -z "$LOGSIZE" ]; then
-        LOGSIZE=100
+if [ -z "$tamanoLogPar" ]; then
+        tamanoLogPar=100
 fi
 
 #path de la carpeta de logueo
-logPath="$GRUPO/$LOGDIR"
+logPath="$GRUPO/$directorioLogPar"
 
 #si no existe carpeta logueo, la creo
 if [ ! -d "$logPath" ]; then
         mkdir "$logPath" -p -m 777
 fi
 
-nombreArchivoLog="$comando.$LOGEXT"
+nombreArchivoLog="$comando$extensionLogPar"
 archivoLog="$logPath/$nombreArchivoLog"
 
-when=$(date)
+when=$(date '+%Y%m%d %T')
 who=$(whoami)
 where=$comando
 what=$tipoMensaje
@@ -80,9 +87,8 @@ echo "$when-$who-$where-$what-$why" >> "$archivoLog"
 #valido tamano Log
 tamanoLog=`echo "$(stat -c%s $archivoLog)/1024" | bc`
 
-if [ $tamanoLog -ge "$LOGSIZE" ]; then
-	when=$(date)
-	where="LoguearW5"
+if [ $tamanoLog -ge "$tamanoLogPar" ]; then
+	when=$(date '+%Y%m%d %T')
 	what="I"
 	why="Log Excedido"
 	totalLineasLog=$(wc -l < "$archivoLog")
@@ -92,7 +98,6 @@ if [ $tamanoLog -ge "$LOGSIZE" ]; then
     	sed "1,${mitadLineasLog}d" $archivoLog>${archivoLog}.tmp
     	mv ${archivoLog}.tmp $archivoLog
 	echo "$when-$who-$where-$what-$why" >> "$archivoLog"
-
 fi
 
 exit 0
