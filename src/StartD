@@ -7,7 +7,7 @@ else
     touch ./.cont_temp
     echo "Iniciando comando DetectaW5..."
     echo "Ok"
-    $GRUPO$BINDIR/DetectaW5.sh & 
+    $BINDIR/DetectaW5.sh & 
 fi
 
 

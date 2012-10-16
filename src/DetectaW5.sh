@@ -18,13 +18,13 @@ elif [ -z $PROCDIR ]; then
 fi
 
 #verifico existencia de directorios
-if [ ! -d $GRUPO$ARRIDIR ]; then
+if [ ! -d $ARRIDIR ]; then
 	error_ambiente=true
-elif [ ! -d $GRUPO$RECHDIR ]; then
+elif [ ! -d $RECHDIR ]; then
         error_ambiente=true
-elif [ ! -d $GRUPO$ACEPDIR ]; then
+elif [ ! -d $ACEPDIR ]; then
         error_ambiente=true
-elif [ ! -d $GRUPO$PROCDIR ]; then
+elif [ ! -d $PROCDIR ]; then
         error_ambiente=true
 fi
 
@@ -42,14 +42,14 @@ while [ -e ./.cont_temp ] #mientras exista el archivo temporal cont_temp se cont
 do
 
 	#guardo archivos de ARRIDIR en un temporal
-	ls -1p $GRUPO$ARRIDIR | grep -v /\$ > .archivos_temp
+	ls -1p $ARRIDIR | grep -v /\$ > .archivos_temp
 
 
 	#cuento cantidad de archivos
 	cant_archivos=$(wc -l < .archivos_temp)
 	
 	# obtengo todo los codigos de sistema con su fecha de alta y baja
-	cut -f1,3,4 -d',' $GRUPO/MAEDIR/sistemas > .cod_sis_temp
+	cut -f1,3,4 -d',' $MAEDIR/sistemas > .cod_sis_temp
 	cant_sistemas=$(wc -l < .cod_sis_temp)
 	
 	#recorro cada archivo de ARRIDIR y los valido contra MAEDIR/sistemas
@@ -65,7 +65,7 @@ do
 	    if [ $(echo $archivo | grep '.*_[0-9]\{4,4\}-[0-9]\{1,2\}-[0-9]\{1,2\}' -c -i) -eq 1 ]; then
 			
 		    #valido que sea un archivo de texto
-		    if [ -r $GRUPO$ARRIDIR/$archivo ]; then
+		    if [ -r $ARRIDIR/$archivo ]; then
 		
 			    #separo los campos
 			    sis_id1=$(echo $archivo | cut -d \_ -f 1) 
@@ -158,7 +158,7 @@ do
 		sh LoguearW5.sh "DetectarW5" "I" "$mensaje"	
 			
 		#comentar lo que sigue cuando se integre
-		mv $GRUPO$ARRIDIR/$archivo $GRUPO$ACEPDIR/$archivo
+		mv $ARRIDIR/$archivo $ACEPDIR/$archivo
 		
 	    else
 		
@@ -188,7 +188,7 @@ do
 		#sh MoverW5
 					
 		#comentar lo que sigue cuando se integre
-		mv $GRUPO$ARRIDIR/$archivo $GRUPO$RECHDIR/$archivo
+		mv $ARRIDIR/$archivo $RECHDIR/$archivo
 	    fi
 		    
 
@@ -201,7 +201,7 @@ do
 
     #chequeo existencia de archivos en directorio ACEPDIR
     
-    ls -1p $GRUPO$ACEPDIR | grep -v /\$ > .archivos_acep_temp
+    ls -1p $ACEPDIR | grep -v /\$ > .archivos_acep_temp
     cant_acep=$(wc -l < .archivos_acep_temp)
     
     #si existen archivos en ACEPDIR ejecuto comando BuscarW5.sh
