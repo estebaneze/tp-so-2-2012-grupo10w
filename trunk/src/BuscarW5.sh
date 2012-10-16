@@ -148,15 +148,18 @@ while read linea; do
 				elif [ "$pat_con" = "caracter" ]; then
 			
 					while read linealog; do
+
 						nro_linealog=$(echo -e $linealog | cut -d \: -f 1)
-						#busco patron en la linea
-						pos_hal="echo cambiarrrrrrrrrrrrrrrrrrrrr|grep -bo $pat_exp"                                                      
-						pos_hall=$(eval $pos_hal)
-						pos_hallado=$(echo $pos_hall | cut -d\: -f1)
+						echo $linealog|cut -d \: -f 2 >> .bus				
+						expre="grep -bo $pat_exp .bus|cut -d\: -f 1" 
+						pos_hallado=$(eval $expre) 
+						let pos_hallado+=1
 						hastacar=0
 						let hastacar+=cuantos
 						let hastacar+=pos_hallado
-						hallado=$(echo $linealog|cut -c$pos_hallado-$hastacar) 
+						#echo " archivo: $linea	caracterpatron $pat_exp	nrolineaarch: $nro_linealog	desde $desde hasta $nhasta cuantos $cuantos poshallado $pos_hallado hastacar $hastacar"
+						hallado=$(echo $linealog|cut -d \: -f 2|cut -c$pos_hallado-$hastacar) 
+						rm .bus
 						echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> $GRUPO$PROCDIR/resultados."${pat_id}"			
 					done < .busqueda
 				fi  	
@@ -190,6 +193,3 @@ sh LoguearW5.sh "BuscarW5" "I" "Fin de ciclo: ${nro_ciclo} - Cantidad de Archivo
 
 #Borro archivos temporales
 rm .temp_archivosB
-
-
-
