@@ -4,6 +4,16 @@
 
 function mirarW5 {
 
+if [[ ! $LOGDIR ]] ; then
+echo "Variable LOGDIR no definida"
+return 1
+fi
+
+if [[ ! $LOGEXT ]] ; then
+echo "Variable LOGEXT no definida"
+return 1
+fi
+
 COMANDO=$BASH_ARGV     # Comprobar solo Bash >= 3.0
 ARCH=$LOGDIR"/"$COMANDO$LOGEXT
 NLINES=
