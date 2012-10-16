@@ -20,7 +20,6 @@ NLINES=
 FIND=
 ONLY=
 
-ARCH=$BASH_ARGV 	# Comprobar solo Bash >= 3.0
 while getopts “g:n:o:0123456789” OPTION
 do
 	case $OPTION in
