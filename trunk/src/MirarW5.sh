@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Primer intento de la funcion loguear
+# Funcion para ver de forma amigable los logs
 
 function mirarW5 {
 
