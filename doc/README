@@ -118,4 +118,13 @@
 		Ejemplo:
 
 	~$ /home/usuario/bindir/Terminar.sh
+	
+* Loguear:
+
+	- Comando encargado registrar eventos de sistema (errores, alertas, etc).
+	- Para poder ser utilizado por linea de comandos es necesario definir variable GRUPO previamente.
+
+		Ejemplo:
+
+	~$ /home/usuario/bindir/LoguearW5.sh "DetectarW5" "I" "Se movio el archivo al directorio de aceptados"
 
