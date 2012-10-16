@@ -64,7 +64,7 @@ cant_archivos=$(wc -l < .temp_archivosB)
 nro_ciclo=$(grep -o 'SECUENCIA2=[0-9][0-9]*' $GRUPO$CONFARCH | cut -d \= -f 2 ) 
 let nro_ciclo+=1
 
-var="sed -s 's/SECUENCIA2\=[0-9][0-9]*/SECUENCIA2\=${nro_ciclo}/'  ${GRUPO}${CONFARCH}"
+var="sed -i 's/SECUENCIA2=[0-9][0-9]*/SECUENCIA2=${nro_ciclo}/'  ${GRUPO}${CONFARCH}"
 evalsed=$(eval $var)
 
 #Inicializar el log
