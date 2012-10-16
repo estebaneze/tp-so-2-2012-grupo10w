@@ -186,16 +186,17 @@ do
 	###################################################################
 
 	#si no estaba ya iniciado, invoca a DetectaW5, y luego verifica que se esté ejecutando 
-	if [ `ps ax | grep -v grep | grep 'DetectaW5' > '/dev/null'` ]; then
+	PIDDETECTA=$(pgrep DetectaW5.sh)
+	if [[ ! -z "$PIDDETECTA" ]]; then
 		LoguearW5.sh "IniciarW5" A "DetectaW5 ya estaba en ejecución"
 		LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
 	else
 		StartD
-		if [ `ps ax | grep -v grep | grep 'DetectaW5' > '/dev/null'` ]; then
-			PID_DETECTA=´pidof DetectaW5.sh´
-			LoguearW5.sh "IniciarW5" I "Demonio corriendo bajo el nro. ${PID_DETECTA}"
+		PIDDETECTA=$(pgrep DetectaW5.sh)
+		if [[ ! -z "$PIDDETECTA" ]]; then
+			LoguearW5.sh "IniciarW5" I "Demonio corriendo bajo el nro. $PIDDETECTA"
 			LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
-			echo "Demonio corriendo bajo el nro. ${PID_DETECTA}"
+			echo "Demonio corriendo bajo el nro. $PIDDETECTA"
 			echo "Proceso de inicialización concluido"
 		else
 			LoguearW5.sh "IniciarW5" A "Fallo al tratar de iniciar el demonio"
@@ -203,6 +204,7 @@ do
 			echo "Fallo al tratar de iniciar el demonio"
 			echo "Proceso de inicialización concluido"
 		fi
+
 	fi
 
 	###################################################################
