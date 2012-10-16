@@ -13,7 +13,6 @@ error_ambiente=false
 #MAEDIR="maedir"
 #ARRIDIR="arridir"
 
-
 #verifico inicializacion de ambiente
 #verifico que las variables no sean nulas
 
@@ -134,9 +133,9 @@ while read linea; do
 						nro_linealog=$(echo $linealog | cut -d \: -f 1)
 						let nro_linealog-=1
 						let nro_linealog+=desde
-
-						while [ $cuantos -ne 0 ]; do
-							let cuantos-=1
+						cuantosguardo=$cuantos
+						while [ $cuantosguardo -ne 0 ]; do
+							let cuantosguardo-=1
 							
 							hallar="head -$nro_linealog $GRUPO$ACEPDIR/$linea | tail -1" 
 							hallado=$(eval $hallar)
@@ -164,7 +163,7 @@ while read linea; do
 			fi
 			rm .busqueda
 			echo "${nro_ciclo},${linea},${cant_hzgo_arch},${pat_exp},${pat_con},${desde},${hasta}" >> $GRUPO$PROCDIR/rglobales."${pat_id}"
-		fi
+		fi	
 		
 	done < $GRUPO$MAEDIR/patrones	
 
