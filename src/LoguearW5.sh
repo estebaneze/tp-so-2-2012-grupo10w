@@ -32,7 +32,10 @@ extensionLogPar=$LOGEXT
 tamanoLogPar=$LOGSIZE
 
 #elimino espacion repetidos 
-mensaje=`echo $mensaje | sed "s/ +/ /g"`                      
+mensaje=`echo $mensaje | sed "s/ +/ /g"` 
+
+#elimino caracter especial "-" (separador de campos)
+mensaje=`echo $mensaje | sed "s/ -/ /g"`                       
 
 #tamano maximo mensaje 120 caracteres
 mensaje=`echo $mensaje | cut -c -120`
