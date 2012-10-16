@@ -4,8 +4,8 @@
      siguientes pasos:
      1. Crear en el directorio corriente del usuario un subdirectorio
         grupo10w.
-     2. Copiar el archivo Grupo10TemaW.tar en el subdirectorio creado.
-     3. Extraer los archivos del tar.
+     2. Copiar el archivo Grupo10TemaW.tar.gz en el subdirectorio creado.
+     3. Descomprimir y extraer los archivos de Grupo10TemaW.tar.gz.
      4. Ejecutar el comando InstalaW5.sh.
      5. El comando le solicitará los datos necesarios para realizar 
         la instalación. Si no se especifica algún dato se usarán los 
