@@ -85,8 +85,9 @@ while read linea; do
 	if [ $(find $GRUPO$PROCDIR -name $linea | wc -l) -eq 1 ]
 	then
 		#Logueo y muevo el archivo
-		sh LoguearW5.sh "BuscarW5" "I" "Archivo ${linea} ya se encuentra procesado"
+		sh LoguearW5.sh "BuscarW5" "E" "Archivo ${linea} ya se encuentra procesado"
 		#comentar lo que sigue cuando se integre
+		#sh MoverW5  
 		mv $GRUPO$ACEPDIR/$linea $GRUPO$RECHDIR/$linea
 	fi
 
@@ -155,10 +156,13 @@ while read linea; do
 						pos_hallado=$(eval $expre) 
 						let pos_hallado+=1
 						hastacar=0
+						desdecar=0	
+						let desdecar+=pos_hallado
+						let desdecar+=desde
+						let hastacar+=desdecar
 						let hastacar+=cuantos
-						let hastacar+=pos_hallado
-						#echo " archivo: $linea	caracterpatron $pat_exp	nrolineaarch: $nro_linealog	desde $desde hasta $nhasta cuantos $cuantos poshallado $pos_hallado hastacar $hastacar"
-						hallado=$(echo $linealog|cut -d \: -f 2|cut -c$pos_hallado-$hastacar) 
+
+						hallado=$(echo $linealog|cut -d \: -f 2|cut -c$desdecar-$hastacar) 
 						rm .bus
 						echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> $GRUPO$PROCDIR/resultados."${pat_id}"			
 					done < .busqueda
@@ -181,15 +185,14 @@ while read linea; do
 		let cant_s_patron+=1
 	fi
 
-	#comentar lo que sigue cuando se integre
-	#MoverW5.sh
+	#habilitar lo que sigue cuando se integre todo
+        #sh MoverW5  
 	#mv $GRUPO$ACEPDIR/$linea $GRUPO$PROCDIR/$linea
 	
 done < .temp_archivosB
 
-
 #fin de todos los archivos procesados
-sh LoguearW5.sh "BuscarW5" "I" "Fin de ciclo: ${nro_ciclo} - Cantidad de Archivos con Hallazgos: ${cant_hzgo} - Cantidad de Archivos sin Hallazgos: ${cant_s_hzgo} - Cantidad de Archivos sin Patron aplicable: ${cant_s_patron} "
+sh LoguearW5.sh "BuscarW5" "I" "Fin de ciclo: ${nro_ciclo} - Cant Arch con Hallazgos: ${cant_hzgo} - Cant. Arch sin Hallazgos: ${cant_s_hzgo} - Cant Arch sin Patron Aplicable: ${cant_s_patron} "
 
 #Borro archivos temporales
 rm .temp_archivosB
