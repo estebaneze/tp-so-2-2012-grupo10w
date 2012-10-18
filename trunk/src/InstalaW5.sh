@@ -28,8 +28,8 @@ function ChequearPerl {
 	#Si no devuelve 0 no esta instalado
 	if [ $VPERL==0 ]; then
 		#Obtengo la version
-		VPERL=$(perl -v | grep -o -m1 '(v.*)' | cut -d'v' -f2 | cut -d')' -f1)
-		if [ ${VPERL:0:1} -ge 5 ]; then
+		VPERL=$( perl -v | grep -o -m1 'v[0-9].[0-9]*.[0-9]*' )
+		if [ ${VPERL:1:1} -ge 5 ]; then
 			echo "Perl Version: $VPERL"
 			return 0;
 		fi
@@ -47,13 +47,14 @@ function ChequearPerl {
 function DefinirDirectorio {
 	local linea
 	if [ -n ${!2} ]; then
-		eval "$2=$GRUPO$3"
+		eval "$2=$GRUPO/$3"
 	fi
-	Loguear "I" "${!1} (${!2}): " 0
+	Loguear "I" "${!1} ($3): " 0
 	read linea
+	ChequearSalida $linea
 	if [ "$linea" != "" ]; then
 		Loguear "I" "El usuario ingresó: $linea" 1
-		if [[ $linea == /* ]]; then
+		if [[ $linea = /* ]]; then
 			eval "$2=$GRUPO$linea"
 		else
 			eval "$2=$GRUPO/$linea"
@@ -74,12 +75,14 @@ function DefinirDataSize {
 	while [ $ESPACIOLIBRE -lt $DATASIZE ]; do
 	Loguear "I" "Defina el espacio mínimo libre para el arribo de archivos externos en MBytes ($DATASIZE):" 0
 	read linea
+	ChequearSalida $linea
 	if [ "$linea" != "" ]; then
 		IsNumber $linea
 		while [ ! $? -eq 0 ]
 		do
 			echo "Debe ingresar un numero entero. Por favor reingrese el valor:"
 			read linea
+			ChequearSalida $linea
 			IsNumber $linea
 		done
 		Loguear "I" "El usuario ingresó: $linea" 1
@@ -101,6 +104,8 @@ function DefinirDataSize {
 			while [ $linea!="Si" -a $linea!="No" ] 
 			do
 				echo "Desea ingresar otro valor? (Si-No)"
+				read linea
+				ChequearSalida $linea
 			done
 			if [ $linea="No" ]; then
 				echo "Saliendo de la Instalación"
@@ -171,8 +176,8 @@ function CargarVariables {
 	while read linea; 
 	do
         if [ -z "$linea" ]; then
-			continue
-		fi
+	continue
+	fi
     	var=$(echo $linea | cut -d'=' -f1)
     	val=$(echo $linea | cut -d'=' -f2)
     	eval "$var=$val"
@@ -254,7 +259,12 @@ function ChequearInstalacion {
 			archfaltantes+=($i)
 		fi
 	done
-
+	#Chequeo que Perl esté instalado
+	ChequearPerl
+	#Si no esta instalado salgo con 1
+	if [ $? -eq 1 ]; then
+		return 3
+	fi
 	#Si no hay archivos ni directorios faltantes listo la ubicacion de todo y retorno 0
 	if [ ${#archfaltantes[@]} -eq 0 -a ${#dirfaltantes[@]} -eq 0 ]; then
 		Loguear "I" "Librería del Sistema: $CONFDIR" 0
@@ -279,13 +289,7 @@ function ChequearInstalacion {
 		Loguear "I" "Estado de la instalación: COMPLETA" 0
 		Loguear "I" "Proceso de Instalación Cancelado" 0
 		return 0
-	else
-		#Chequeo que Perl esté instalado
-		ChequearPerl
-		#Si no esta instalado salgo con 1
-		if [ $? -eq 1 ]; then
-			return 3
-		fi
+	else		
 		#Chequeo que se encuentren todos los archivos faltantes para instalar
 		#Si no estan salgo retornando 2		
 		ChequearInstalables ${archfaltantes[@]}
@@ -410,6 +414,17 @@ function IsNumber {
 }
 
 ####################################################################################################
+
+#Chequea si el valor pasado por parámetro es el caracter de salida de la instalacion.
+#En caso afirmativo sale de la instalación
+function ChequearSalida {
+	if [ "$1" == "#q" ]; then
+		Loguear "I" "Instalacion cancelada por el usuario" 0
+		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+		exit 2
+	fi
+}
+####################################################################################################
 ##                                          COMIENZO                                              ##
 ####################################################################################################
 
@@ -469,16 +484,16 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 	fi
 	#Defino datos de instalacion
 	MSG="Defina el directorio de grabación de los ejecutables"
-	DefinirDirectorio MSG BINDIR /bin
+	DefinirDirectorio MSG BINDIR bin
 	CONFDIR=$BINDIR/conf
 	TEMPDIR=$BINDIR/temp
 	CONFARCH=$CONFDIR/InstalaW5.conf
 	MSG="Defina el directorio de instalación de los archivos maestros"
-	DefinirDirectorio MSG MAEDIR /mae
+	DefinirDirectorio MSG MAEDIR mae
 	while [ "$RESPUESTA" != "Si" ]
 	do
 		MSG="Defina el directorio de grabación de archivos externos"
-		DefinirDirectorio MSG ARRIDIR /arribos
+		DefinirDirectorio MSG ARRIDIR arribos
 		DATASIZE=100
 		DefinirDataSize
 		if [ $? -eq 1 ]; then
@@ -487,22 +502,35 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 			exit 2
 		fi
 		MSG="Defina el directorio de grabación de los archivos externos rechazados"
-		DefinirDirectorio MSG RECHDIR /rechazados
+		DefinirDirectorio MSG RECHDIR rechazados
 		MSG="Defina el directorio de grabación de los archivos externos aceptados"
-		DefinirDirectorio MSG ACEPDIR /aceptados
+		DefinirDirectorio MSG ACEPDIR aceptados
 		MSG="Defina el directorio de grabación de los archivos procesados"
-		DefinirDirectorio MSG PROCDIR /procesados
-		LOGDIR=$GRUPO/log
+		DefinirDirectorio MSG PROCDIR procesados
+		MSG="Defina el directorio de grabación de los archivos de log"
+		DefinirDirectorio MSG LOGDIR log		
 		LOGEXT=.log
+		Loguear "I" "Defina la extensión para los archivos de log ($LOGEXT): " 0
+		read linea
+		ChequearSalida $linea
+		if [ "$linea" != "" ]; then
+			if [[ "$linea" = .* ]]; then
+				LOGEXT=$linea
+			else
+				LOGEXT=".$linea"
+			fi
+		fi		
 		LOGSIZE=400
 		Loguear "I" "Defina el tamaño máximo para los archivos $LOGEXT en Kbytes ($LOGSIZE): " 0
 		read linea
+		ChequearSalida $linea
 		if [ "$linea" != "" ]; then
 			IsNumber $linea
 			while [ ! $? -eq 0 ]
 			do
 				echo "Debe ingresar un numero entero. Por favor reingrese el valor:"
 				read linea
+				ChequearSalida $linea
 				IsNumber $linea
 			done
 			Loguear "I" "El usuario ingresó: $linea" 1
@@ -511,7 +539,7 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 			Loguear "I" "El usuario ingresó el valor por omisión: $LOGSIZE" 1
 		fi
 		MSG="Defina el directorio de grabación de los reportes de salida"
-		DefinirDirectorio MSG REPODIR /reportes
+		DefinirDirectorio MSG REPODIR reportes
 		clear
 		InformarDatosInstalacion
 		Loguear "I" "Estado de la instalacion: LISTA" 0
@@ -520,6 +548,7 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 		do
 			echo "Los datos ingresados son correctos? (Si-No)"
 			read RESPUESTA
+			ChequearSalida $RESPUESTA
 		done
 		Loguear "I" "El usuario ingresó: $RESPUESTA" 1
 		if [ "$RESPUESTA" = "No" ]; then
@@ -554,7 +583,8 @@ else
 	while [ "$RESPUESTA" != "Si" -a "$RESPUESTA" != "No" ]
 	do
 		echo "Se procederá a la instalación de los componentes faltantes. Continuar? (Si-No)"
-		read RESPUESTA	
+		read RESPUESTA
+		ChequearSalida $RESPUESTA	
 	done
 	#Sale con 2 si el usuario no quiere proseguir con la instalacion
 	Loguear "I" "El usuario ingresó: $RESPUESTA" 1
@@ -573,6 +603,7 @@ while [ "$RESPUESTA" != "Si" -a "$RESPUESTA" != "No" ]
 do
 	echo "Iniciando Instalación. Esta Ud seguro? (Si-No)"
 	read RESPUESTA
+	ChequearSalida $RESPUESTA
 done
 Loguear "I" "El usuario ingresó: $RESPUESTA" 1
 #Salgo con 2 si el usuario no quiere proseguir con la instalacion
