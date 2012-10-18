@@ -1,19 +1,44 @@
 * InstalaW5:
    - Este comando realiza la instalación del sistema.
+   - En cualquier momento que el comando le solicite datos puede 
+	 cancelar la instalación ingresando "#q"
    - Para realizar la instalación por primera vez se deben seguir los
      siguientes pasos:
+		
      1. Crear en el directorio corriente del usuario un subdirectorio
-        grupo10w.
+        llamado grupo10w.
      2. Copiar el archivo Grupo10TemaW.tar.gz en el subdirectorio creado.
-     3. Descomprimir y extraer los archivos de Grupo10TemaW.tar.gz.
-     4. Ejecutar el comando InstalaW5.sh.
+     3. Descomprimir y extraer los archivos de Grupo10TemaW.tar.gz utilizando
+        el comando tar desde el subdirectorio al cual se copió el archivo
+        de la siguiente manera: 
+           $~ tar -zxvf Grupo10TemaW.tar.gz
+     4. Ejecutar el comando InstalaW5.sh desde el subdirectorio grupo10w
+        escribiendo:
+           $~ ./InstalaW5.sh
      5. El comando le solicitará los datos necesarios para realizar 
         la instalación. Si no se especifica algún dato se usarán los 
         valores por defecto.
+        Los directorios solicitados son subdirectorios del directorio de
+        instalación. Puede ingresar un subdirectorio simple como por ejemplo
+        "bin" (o "/bin") o un subdirectorio como "sistemas/ejemplo/mae" (o
+        "/sistemas/ejemplo/mae").
+        Cuando el sistema le solicite el tamaño máximo de los archivos de
+        log (expresado en kbytes) tenga en cuenta que el valor ingresado debe
+        ser un número entero.
+        Cuando el sistema le solicite el espacio mínimo libre para el arribo
+        de archivos externos (expresado en Mbytes) tenga en cuenta que el
+        valor ingresado debe ser un valor entero y que debe contar con ese
+        espacio libre en el directorio de arribos. En el caso que no cuente
+        con la cantidad de espacio libre ingresada se le dará la opción de
+        ingresar un nuevo valor en el caso de responder "Si",o salir de la
+        instalación en el caso de responder "No".
+        Al solicitarle la extensión de los archivos de log puede escribir la
+        extensión de los mismo empezando con "." o sin (Ejemplo: ".logs" 
+        o "logs")
      6. Una vez ingresado todos los datos se mostrarán los datos ingresados
         y se le preguntará si estos son correctos. Si responde "No" podrá 
         ingresarlos nuevamente. Si responde "Si" se sigue con el siguiente
-       paso de la instalación.
+        paso de la instalación.
      7. Se le informará que la instalación está por iniciarse y se le
         preguntará si quiere proseguir. Si responde "Si" se sigue con el
         siguiente paso, si responde "No" se saldrá de la instalación.
