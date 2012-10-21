@@ -328,7 +328,7 @@ sub cargar_patrones {
     my $maestro_patrones = "";
 
     if ( exists( $ENV{"MAEDIR"} ) ) {
-        $maestro_patrones = $ENV{"MAEDIR"}."patrones";
+        $maestro_patrones = $ENV{"MAEDIR"}."/patrones";
         if (! -e $maestro_patrones ) {
             print "Error: (ListarW5) maestro de patrones no existe.\n";
             exit 1;
@@ -361,7 +361,7 @@ sub cargar_sistemas {
     my $maestro_sistemas = "";
 
     if ( exists( $ENV{"MAEDIR"} ) ) {
-        $maestro_sistemas = $ENV{"MAEDIR"}."sistemas";
+        $maestro_sistemas = $ENV{"MAEDIR"}."/sistemas";
         if (! -e $maestro_sistemas ) {
             print "Error: (ListarW5) maestro de sistemas no existe.\n";
             exit 1;
@@ -426,7 +426,7 @@ sub get_ciclos_globales {
     my %ciclos = ();
 
     for my $pat_id ( keys %rglobales ) {
-        for my $linea ( keys $rglobales{ $pat_id } ){
+        for my $linea ( keys %{$rglobales{ $pat_id }} ){
             my $ciclo = $rglobales{ $pat_id }{ $linea }{ ciclo };
             $ciclos{ $ciclo } = 1;
         }
@@ -438,7 +438,7 @@ sub get_ciclos {
     my %ciclos = ();
 
     for my $pat_id ( keys %resultados ) {
-        for my $linea ( keys $resultados{ $pat_id } ){
+        for my $linea ( keys %{$resultados{ $pat_id }} ){
             my $ciclo = $resultados{ $pat_id }{ $linea }{ ciclo };
             $ciclos{ $ciclo } = 1;
         }
@@ -449,7 +449,7 @@ sub get_ciclos {
 sub get_archivos {
     my %archivos = ();
     for my $pat_id ( keys %resultados ) {
-        for my $linea ( keys $resultados{ $pat_id } ){
+        for my $linea ( keys %{$resultados{ $pat_id }} ){
             my $archivo = $resultados{ $pat_id }{ $linea }{ nombre };
             $archivos{ $archivo } = 1;
         }
@@ -460,7 +460,7 @@ sub get_archivos {
 sub get_archivos_globales {
     my %archivos = ();
     for my $pat_id ( keys %rglobales ) {
-        for my $linea ( keys $rglobales{ $pat_id } ){
+        for my $linea ( keys %{$rglobales{ $pat_id }} ){
             my $archivo = $rglobales{ $pat_id }{ $linea }{ nombre };
             $archivos{ $archivo } = 1;
         }
@@ -1607,7 +1607,7 @@ sub procesar_estado {
 
         print "\n";
 
-        for my $accion ( keys $estado{ $proceso_estado }{opciones} ) { 
+        for my $accion ( keys %{$estado{ $proceso_estado }{opciones}} ) { 
             my $desc=$estado{$proceso_estado}{opciones}{$accion}{descripcion};
             print "$accion => $desc\n";
         }
@@ -1659,7 +1659,7 @@ sub resultados_generar_reporte {
 
 
     for my $pat_id ( keys %resultados ) {
-        for my $linea ( keys $resultados{ $pat_id } ){
+        for my $linea ( keys %{$resultados{ $pat_id }} ){
             my $ciclo     = $resultados{ $pat_id }{ $linea }{ ciclo     };
             my $nombre    = $resultados{ $pat_id }{ $linea }{ nombre    };
             my $registro  = $resultados{ $pat_id }{ $linea }{ registro  };
@@ -1724,9 +1724,12 @@ sub globales_generar_reporte {
     $reporte .= "\n";
     $reporte .= "Resultados:\n";
 
+    my %stats_sistema = ();
+    my %stats_regexp = ();
     for my $pat_id ( keys %rglobales ) {
         my $sis_id = $patrones{ $pat_id }{ sis_id };
-        for my $linea ( keys $rglobales{ $pat_id } ){
+        my $pat_exp = $patrones{ $pat_id }{ pat_exp };
+        for my $linea ( keys %{$rglobales{ $pat_id }} ){
             my $ciclo     = $rglobales{ $pat_id }{ $linea }{ ciclo     };
             my $nombre    = $rglobales{ $pat_id }{ $linea }{ nombre    };
             my $cantidad  = $rglobales{ $pat_id }{ $linea }{ cantidad  };
@@ -1736,7 +1739,20 @@ sub globales_generar_reporte {
             if ( defined $patrones_seleccionados{ $pat_id } ) {
                 if ( defined $ciclos_seleccionados_globales{ $ciclo } ) {
                     if ( defined $archivos_seleccionados_globales{ $nombre } ) {
+
+                        if ( defined $stats_sistema{ $sis_id } ) {
+			   $stats_sistema{ $sis_id }+=1;
+			} else {
+			   $stats_sistema{ $sis_id }=1;
+                        }
+                        if ( defined $stats_regexp{ $pat_exp } ) {
+			   $stats_regexp{ $pat_exp }+=1;
+			} else {
+			   $stats_regexp{ $pat_exp }=1;
+                        }
                         $reporte .= "  Patron:   $pat_id\n";
+                        $reporte .= "  Sistema:  $sis_id\n";
+                        $reporte .= "  Regexp:   $pat_exp\n";
                         $reporte .= "  Ciclo:    $ciclo\n";
                         $reporte .= "  Archivo:  $nombre\n";
                         $reporte .= "  Cantidad: $cantidad\n";
@@ -1749,6 +1765,18 @@ sub globales_generar_reporte {
             }
         }
     }
+
+    $reporte .= "\nEstadisticas:\n";
+    $reporte .= "  Expresiones Regulares:\n    cantidad: expresion\n";
+    for my $linea ( keys %stats_regexp ){
+        $reporte .= "    $stats_regexp{$linea}: $linea\n";
+    }
+    $reporte .= "\n  Sistemas:\n    cantidad: expresion\n";
+    for my $linea ( keys %stats_sistema ){
+        $reporte .= "    $stats_sistema{$linea}: $linea\n";
+    }
+
+
 
     print $reporte;
     

@@ -39,7 +39,7 @@ do
 		ONLY=$OPTARG
 		;;
 		[0-9])
-		NLINES=$LINES$OPTION
+		NLINES=$NLINES$OPTION
 		;;
 		?)
 		return 1

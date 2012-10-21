@@ -4,6 +4,7 @@
 ARCH_CONFIG='./conf/InstalaW5.conf'
 ARCH_BLOQUEO_INICIAR='./temp/iniciar.bloqueo'
 TERMINAR_INI=false
+clear
 
 while ! $TERMINAR_INI
 do
@@ -15,6 +16,7 @@ do
 		LoguearW5.sh "IniciarW5" E "Se intentó inicializar un ambiente ya inicializado"
 
 		echo "Componentes existentes:"
+		echo "----------------------"
 		declare -a NULLS=()
 		contador=0
 		for i in ${VARS[@]}
@@ -30,19 +32,26 @@ do
 
 		#en caso de instalación incompleta
 		if [ ! -z "${NULLS[@]}" ]; then
-			echo -n "Componentes faltantes: "
+			echo
+			echo "Componentes faltantes: "
+			echo "----------------------"
 			echo "${NULLS[@]}"
+			echo ; echo
 			echo "Estado de la instalación: INCOMPLETA"
 			echo "Proceso de inicialización cancelado"
+			echo
 			LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
 			read -p "Presione Enter para salir..."
 			break
 		else
+			echo ; echo ; echo
 			echo "Estado del sistema: INICIALIZADO"
+			echo
 		fi
 
 		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
 		echo "No está permitido reinicializar el sistema"
+		echo
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -66,6 +75,7 @@ do
 	if [ -z "$BINDIR" ]; then
 		echo "No se indicó directorio para los archivos binarios, imposible continuar"
 		echo "Fin de la ejecución"
+		echo
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -77,6 +87,7 @@ do
 	if [ -d "${LOGDIR}" ]; then chmod u+wr "${LOGDIR}"
 	else
 		echo "No se encuentra el directorio de logueo. Fin de la ejecución"
+		echo
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -87,6 +98,7 @@ do
 
 	#revisa y muestra el estado de las variables
 	echo "Componentes existentes:"
+	echo "----------------------"
 	declare -a NULLS=()
 	contador=0
 	for i in ${VARS[@]}
@@ -102,15 +114,20 @@ do
 
 	#en caso de instalación incompleta
 	if [ ! -z "${NULLS[@]}" ]; then
-		echo -n "Componentes faltantes: "
+		echo
+		echo "Componentes faltantes: "
+		echo "----------------------"
 		echo "${NULLS[@]}"
+		echo ; echo ; echo
 		echo "Estado de la instalación: INCOMPLETA"
 		echo "Proceso de inicialización cancelado"
-		LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
+		echo		
+LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
 		read -p "Presione Enter para salir..."
 		break
 	else
 		echo "Estado del sistema: INICIALIZADO"
+		echo
 	fi
 
 	###################################################################
@@ -123,6 +140,7 @@ do
 		LoguearW5.sh "IniciarW5" SE "Archivo maestro no encontrado"
 		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
 		echo "Faltan archivos maestros. Fin de la ejecución"
+		echo
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -146,11 +164,14 @@ do
 		else faltan_binarios=true; fi
 		if [ "$(ls "${BINDIR}" | grep "StartD")" ]; then chmod u+rx "${BINDIR}/StartD"
 		else faltan_binarios=true; fi
+		if [ "$(ls "${BINDIR}" | grep "Terminar.sh")" ]; then chmod u+rx "${BINDIR}/Terminar.sh"
+		else faltan_binarios=true; fi
 	
 		if ${faltan_binarios} ; then
 			LoguearW5.sh "IniciarW5" SE "Binarios no encontrados"
 			LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
 			echo "Faltan archivos binarios. Fin de la ejecución"
+			echo
 			read -p "Presione Enter para salir..."
 			break
 		fi
@@ -158,6 +179,7 @@ do
 		LoguearW5.sh "IniciarW5" SE "Directorio de binarios no encontrado"
 		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
 		echo "No se encuentra el directorio de binarios. Fin de la ejecución"
+		echo		
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -179,6 +201,7 @@ do
 		LoguearW5.sh "IniciarW5" SE "Directorios no encontrados"
 		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
 		echo "Faltan directorios del sistema. Fin de la ejecución"
+		echo
 		read -p "Presione Enter para salir..."
 		break
 	fi
@@ -186,10 +209,14 @@ do
 	###################################################################
 
 	#si no estaba ya iniciado, invoca a DetectaW5, y luego verifica que se esté ejecutando 
+	echo ; echo ; echo
 	PIDDETECTA=$(pgrep DetectaW5.sh)
 	if [[ ! -z "$PIDDETECTA" ]]; then
 		LoguearW5.sh "IniciarW5" A "DetectaW5 ya estaba en ejecución"
 		LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
+		echo "El demonio ya estaba corriendo bajo el nro. $PIDDETECTA"
+		echo "Proceso de inicialización concluido"
+		echo
 	else
 		StartD
 		PIDDETECTA=$(pgrep DetectaW5.sh)
@@ -198,11 +225,13 @@ do
 			LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
 			echo "Demonio corriendo bajo el nro. $PIDDETECTA"
 			echo "Proceso de inicialización concluido"
+			echo
 		else
 			LoguearW5.sh "IniciarW5" A "Fallo al tratar de iniciar el demonio"
 			LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
 			echo "Fallo al tratar de iniciar el demonio"
 			echo "Proceso de inicialización concluido"
+			echo
 		fi
 
 	fi

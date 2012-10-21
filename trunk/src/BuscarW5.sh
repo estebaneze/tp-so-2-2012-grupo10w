@@ -31,17 +31,17 @@ elif [ -z $CONFDIR ]; then
 fi
 
 #verifico existencia de directorios
-if [ ! -d $GRUPO$ARRIDIR ]; then
+if [ ! -d $ARRIDIR ]; then
         error_ambiente=true
-elif [ ! -d $GRUPO$RECHDIR ]; then
+elif [ ! -d $RECHDIR ]; then
         error_ambiente=true
-elif [ ! -d $GRUPO$ACEPDIR ]; then
+elif [ ! -d $ACEPDIR ]; then
         error_ambiente=true
-elif [ ! -d $GRUPO$PROCDIR ]; then
+elif [ ! -d $PROCDIR ]; then
         error_ambiente=true
-elif [ ! -d $GRUPO$MAEDIR ]; then
+elif [ ! -d $MAEDIR ]; then
         error_ambiente=true
-elif [ ! -d $GRUPO$CONFDIR ]; then
+elif [ ! -d $CONFDIR ]; then
         error_ambiente=true
 fi
 
@@ -55,20 +55,20 @@ fi
 #Cuento la cantidad de archivos a procesar
 
 #Guardo archivos de ARRIDIR en un temporal
-ls -1p $GRUPO$ACEPDIR | grep -v /\$ > .temp_archivosB
+ls -1p $ACEPDIR | grep -v /\$ > .temp_archivosB
 
 #Cuento cantidad de archivos
 cant_archivos=$(wc -l < .temp_archivosB)
 
 #Busco numero de ciclo en archivo de configuracion y lo actualizo
-nro_ciclo=$(grep -o 'SECUENCIA2=[0-9][0-9]*' $GRUPO$CONFARCH | cut -d \= -f 2 ) 
-let nro_ciclo+=1
+nro_ciclo=$(grep -o 'SECUENCIA2=[0-9][0-9]*' $CONFDIR/InstalaW5.conf | cut -d \= -f 2 ) 
+let nro_ciclo+=1 
 
-var="sed -i 's/SECUENCIA2=[0-9][0-9]*/SECUENCIA2=${nro_ciclo}/'  ${GRUPO}${CONFARCH}"
-evalsed=$(eval $var)
+var="sed -i 's/SECUENCIA2=[0-9][0-9]*/SECUENCIA2=${nro_ciclo}/'  $CONFDIR/InstalaW5.conf"
+evalsed=$(eval $var) 
 
 #Inicializar el log
-sh LoguearW5.sh "BuscarW5" "I" "Inicio BuscarW5 - Ciclo Nro.: ${nro_ciclo} - Cantidad de Archivos ${cant_archivos}"
+LoguearW5.sh "BuscarW5" "I" "Inicio BuscarW5 - Ciclo Nro.: ${nro_ciclo} - Cantidad de Archivos ${cant_archivos}"
 
 #Inicializo variables
 cant_hzgo=0
@@ -79,16 +79,15 @@ cant_s_patron=0
 
 while read linea; do
 	#Logueo
-	sh LoguearW5.sh "BuscarW5" "I" "Archivo a procesar: ${linea}"
+	LoguearW5.sh "BuscarW5" "I" "Archivo a procesar: ${linea}"
 
 	#Verifico que el archivo no haya sido procesado
-	if [ $(find $GRUPO$PROCDIR -name $linea | wc -l) -eq 1 ]
+	if [ $(find $PROCDIR -name $linea | wc -l) -eq 1 ]
 	then
 		#Logueo y muevo el archivo
-		sh LoguearW5.sh "BuscarW5" "E" "Archivo ${linea} ya se encuentra procesado"
+		LoguearW5.sh "BuscarW5" "E" "Archivo ${linea} ya se encuentra procesado"
 		#comentar lo que sigue cuando se integre
-		#sh MoverW5  
-		mv $GRUPO$ACEPDIR/$linea $GRUPO$RECHDIR/$linea
+		MoverW5.sh $ACEPDIR/$linea $RECHDIR "BuscarW5"
 	fi
 
 	#Inicializo variables
@@ -115,7 +114,7 @@ while read linea; do
 			separador="+-#-+"
 			nro_linea=0
 
-			bus="grep -n  $pat_exp  $GRUPO$ACEPDIR/$linea >> .busqueda"
+			bus="grep -n  $pat_exp  $ACEPDIR/$linea >> .busqueda"
 			eval $bus 
 			cant_hzgo_arch=$(wc -l < .busqueda)
 
@@ -138,25 +137,32 @@ while read linea; do
 						while [ $cuantosguardo -ne 0 ]; do
 							let cuantosguardo-=1
 							
-							hallar="head -$nro_linealog $GRUPO$ACEPDIR/$linea | tail -1" 
+							hallar="head -$nro_linealog $ACEPDIR/$linea | tail -1" 
 							hallado=$(eval $hallar)
-							echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> $GRUPO$PROCDIR/resultados."${pat_id}"			
+							echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> $PROCDIR/resultados."${pat_id}"			
 						let nro_linealog+=1						
 						done
 					done < .busqueda
 				
 				#si tengo que guardar caracteres					
 				elif [ "$pat_con" = "caracter" ]; then
-			
-					while read linealog; do
+				#cuento cantidad de archivos
+				cant_lineasarch=$(wc -l < .busqueda)
+				
+				for i in $(seq 1 $cant_lineasarch)
+					do
+						IFSOLD=$IFS
+						IFS="\n"
+						#obtengo nombre del primer archivo
+	    					linealog=$(head -n $i .busqueda | tail -n 1)
 						echo $linealog >> .buslinea
 						nro_linealog=$(grep -o "^[0-9][0-9]*" .buslinea)
-						#echo "despues " $linealog
+						
 						rm .buslinea
-						echo $linealog | sed "s/^[0-9][0-9]*://" >>.bus
+						echo $linealog | sed "s/^[0-9][0-9]*://" >>.bus 2> "/dev/null"
 
 							
-						#cat .bus			
+									
 						expre="grep -bo $pat_exp .bus|cut -d\: -f 1" 
 						pos_hallado=$(eval $expre) 
 						let pos_hallado+=1
@@ -164,22 +170,25 @@ while read linea; do
 						desdecar=0	
 						let desdecar+=pos_hallado
 						let desdecar+=desde
+						let desdecar-=1
 						let hastacar+=desdecar
 						let hastacar+=cuantos
 						let hastacar-=1
 						#echo " archivo: $linea	caracterpatron $pat_exp	nrolineaarch: $nro_linealog	desde $desde hasta $nhasta cuantos $cuantos poshallado $pos_hallado hastacar $hastacar desdecar $desdecar"
-
-						hallado=$(echo $linealog|cut -d \: -f 2|cut -c$desdecar-$hastacar) 
+						#cat .bus
+						hallado=$(cat .bus | cut -c$desdecar-$hastacar) 
 						rm .bus
-						echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> $GRUPO$PROCDIR/resultados."${pat_id}"			
-					done < .busqueda
+						IFS=$IFSOLD
+						echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> $PROCDIR/resultados."${pat_id}"			
+					done 
+				
 				fi  	
 			fi
 			rm .busqueda
-			echo "${nro_ciclo},${linea},${cant_hzgo_arch},${pat_exp},${pat_con},${desde},${hasta}" >> $GRUPO$PROCDIR/rglobales."${pat_id}"
+			echo "${nro_ciclo},${linea},${cant_hzgo_arch},${pat_exp},${pat_con},${desde},${hasta}" >> $PROCDIR/rglobales."${pat_id}"
 		fi	
 		
-	done < $GRUPO$MAEDIR/patrones	
+	done < $MAEDIR/patrones	
 
 	if [ $conhallazgo -eq 1 ]; then 
 		let cant_hzgo+=1
@@ -188,18 +197,18 @@ while read linea; do
 	fi
 
 	if [ $conpatron -eq 0 ]; then 
-		sh LoguearW5.sh "BuscarW5" "I" "No hay patrones aplicables para este archivo"
+		LoguearW5.sh "BuscarW5" "I" "No hay patrones aplicables para este archivo"
 		let cant_s_patron+=1
 	fi
 
 	#habilitar lo que sigue cuando se integre todo
-        #sh MoverW5  
-	#mv $GRUPO$ACEPDIR/$linea $GRUPO$PROCDIR/$linea
+        MoverW5.sh $ACEPDIR/$linea $PROCDIR "BuscarW5"
 	
 done < .temp_archivosB
 
 #fin de todos los archivos procesados
-sh LoguearW5.sh "BuscarW5" "I" "Fin de ciclo: ${nro_ciclo} - Cant Arch con Hallazgos: ${cant_hzgo} - Cant. Arch sin Hallazgos: ${cant_s_hzgo} - Cant Arch sin Patron Aplicable: ${cant_s_patron} "
+LoguearW5.sh "BuscarW5" "I" "Fin de ciclo: ${nro_ciclo} - Cant Arch con Hallazgos: ${cant_hzgo} - Cant. Arch sin Hallazgos: ${cant_s_hzgo} - Cant Arch sin Patron Aplicable: ${cant_s_patron} "
+
 
 #Borro archivos temporales
 rm .temp_archivosB
