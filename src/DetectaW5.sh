@@ -91,7 +91,7 @@ do
 			    if [ $fecha_valida != false ]; then
 			
 				    #trasformo fecha a formato para comparar
-				    fecha_arch=$(echo $fecha | sed "s-\---g")
+				    fecha_arch=$(echo $fecha | sed "s-\---g") 2> "/dev/null"
 				    
 				    sis_hallado=false
 
@@ -103,27 +103,38 @@ do
 					sis_id=$(echo $sistema | cut -d \, -f 1)	
 					fecha_alta=$(echo $sistema | cut -d \, -f 2)
 					fecha_baja=$(echo $sistema | cut -d \, -f 3 )
-					
-					fecha_alta_sist=$(echo $fecha_alta | sed "s-\---g")
-					fecha_baja_sist=$(echo $fecha_baja | sed "s-\---g")
+					if [[ ! $fecha_baja =~ ^[0-9].* ]] ; then
+						fecha_baja=
+					fi
+					fecha_alta_sist=$(echo $fecha_alta | sed "s-\---g") 2> "/dev/null"
+					fecha_baja_sist=$(echo $fecha_baja | sed "s-\---g") 2> "/dev/null"
 
 					#obtengo fecha actual en el formato que necesito
 					fecha_actual=$(echo $(date +%Y)$(date +%m)$(date +%d))	
 	
 					# valido que el id del sistema exista
-					if [ $sis_id -eq $sis_id1 ]; then
+			#echo "fecha archivo: $fecha_arch"
+			#echo "actual: $fecha_actual"
+	#echo "${fecha_baja}"
+#echo "alta: $fecha_alta"
+#echo "alta sis: $fecha_alta_sist"
+
+
+				if [ $sis_id = $sis_id1 ]; then
 					    sis_hallado=true
 					    if [ $fecha_arch -le $fecha_actual ]; then
 						if [ $fecha_arch -ge $fecha_alta_sist ]; then
-						    if [ ! -z $fecha_baja ]; then
-							if [ $fecha_arch -le $fecha_baja_sist ]; then
-							    			    
+						    if [ -z $fecha_baja ]; then
+
+							sis_valido=true
+						    else
+							echo "Sistema $sistema"
+							echo "baja: $fecha_baja"
+							if [ $fecha_arch -le $fecha_baja_sist ]; then   			    
 							    sis_valido=true
 							else
 							    codigo_rechazo=7
 							fi
-						    else
-							sis_valido=true
 						    fi
 						else
 						    codigo_rechazo=6						
@@ -209,7 +220,7 @@ do
 	#DESCOMENTAR CUANDO FUNCIONE BUSCARW5.SH	
 	#chequeo que buscarw5 se este ejecutando solo una vez
 	echo "invoque a Buscar.sh"	
-	#sh BuscarW5.sh     
+	BuscarW5.sh 2> "/dev/null"
     fi
 
     sleep 10s
