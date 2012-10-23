@@ -30,10 +30,11 @@ fi
 
 #verifico que no haya error de inicializacion de ambiente
 if [ $error_ambiente != false ]; then
-	echo "Error, inicializacion del ambiente erronea"
+	echo "Error, inicializacion del ambiente erronea."
+	echo "Se detendra el demonio."
 	#borro dato oculto que hace que se ejecute infinitamente	
 	rm ./.cont_temp
-	exit 1
+	
 fi
 
 #CICLO PRINCIPAL	
@@ -62,7 +63,7 @@ do
 	
 	   
 	    #valido formato codigoSistema_aaaa-mm-dd
-	    if [ $(echo $archivo | grep '.*_[0-9]\{4,4\}-[0-9]\{1,2\}-[0-9]\{1,2\}' -c -i) -eq 1 ]; then
+	    if [ $(echo $archivo | grep '.*_[0-9]\{4,4\}-[0-9]\{1,2\}-[0-9]\{1,2\}$' -c -i) -eq 1 ]; then
 			
 		    #valido que sea un archivo de texto
 		    if [ -r $ARRIDIR/$archivo ]; then
@@ -113,11 +114,11 @@ do
 					fecha_actual=$(echo $(date +%Y)$(date +%m)$(date +%d))	
 	
 					# valido que el id del sistema exista
-			#echo "fecha archivo: $fecha_arch"
-			#echo "actual: $fecha_actual"
-	#echo "${fecha_baja}"
-#echo "alta: $fecha_alta"
-#echo "alta sis: $fecha_alta_sist"
+					#echo "fecha archivo: $fecha_arch"
+					#echo "actual: $fecha_actual"
+					#echo "${fecha_baja}"
+					#echo "alta: $fecha_alta"
+					#echo "alta sis: $fecha_alta_sist"
 
 
 				if [ $sis_id = $sis_id1 ]; then
@@ -164,13 +165,10 @@ do
 	    if [ "$sis_valido" != false ]; then 
 			
 		#habilitar lo que sigue cuando se integre todo			
-		#sh MoverW5
+		MoverW5.sh $ARRIDIR/$archivo $ACEPDIR "DetectaW5"
 		mensaje="Se movio el archivo $archivo al directorio de aceptados"
 		sh LoguearW5.sh "DetectarW5" "I" "$mensaje"	
 			
-		#comentar lo que sigue cuando se integre
-		mv $ARRIDIR/$archivo $ACEPDIR/$archivo
-		
 	    else
 		
 		if [ $codigo_rechazo -eq 1 ]; then
@@ -196,10 +194,10 @@ do
 		    sh LoguearW5.sh "DetectarW5" "E" "$mensaje"
 		fi		
 		#habilitar lo que sigue cuando se integre todo			
-		#sh MoverW5
+		MoverW5.sh $ARRIDIR/$archivo $RECHDIR "DetectaW5"
 					
 		#comentar lo que sigue cuando se integre
-		mv $ARRIDIR/$archivo $RECHDIR/$archivo
+		#mv $ARRIDIR/$archivo $RECHDIR/$archivo
 	    fi
 		    
 
@@ -217,13 +215,21 @@ do
     
     #si existen archivos en ACEPDIR ejecuto comando BuscarW5.sh
     if [ $cant_acep -ne 0 ]; then
-	#DESCOMENTAR CUANDO FUNCIONE BUSCARW5.SH	
-	#chequeo que buscarw5 se este ejecutando solo una vez
-	echo "invoque a Buscar.sh"	
-	BuscarW5.sh 2> "/dev/null"
+	
+	BuscarW5.sh 
     fi
 
-    sleep 10s
+	tiempo_espera=10
+	for j in $(seq 1 $tiempo_espera)
+	do
+		if  [ -e ./.cont_temp ]; then 
+			sleep 1s
+		else 
+			j=$tiempo_espera
+		fi
+	done
+	
+    #sleep 10s
     rm .archivos_temp
     rm .cod_sis_temp
     rm .archivos_acep_temp

@@ -6,8 +6,10 @@ if [ -e ./.cont_temp ]; then
 else
     touch ./.cont_temp
     echo "Iniciando comando DetectaW5..."
-    echo "Ok"
+    
     $BINDIR/DetectaW5.sh & 
+
+    echo "Ok"
 fi
 
 
