@@ -1671,7 +1671,7 @@ sub resultados_generar_reporte {
                         $reporte .= "  Patron:   $pat_id\n";
                         $reporte .= "  Ciclo:    $ciclo\n";
                         $reporte .= "  Archivo:  $nombre\n";
-                        $reporte .= "  Registro: $resultado\n";
+                        $reporte .= "  Registro: $registro\n";
                         $reporte .= "\n";
                     }
                 }

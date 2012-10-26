@@ -210,7 +210,7 @@ LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
 
 	#si no estaba ya iniciado, invoca a DetectaW5, y luego verifica que se esté ejecutando 
 	echo ; echo ; echo
-	PIDDETECTA=$(pgrep DetectaW5.sh)
+	PIDDETECTA=$(pgrep DetectaW5.sh -o)
 	if [[ ! -z "$PIDDETECTA" ]]; then
 		LoguearW5.sh "IniciarW5" A "DetectaW5 ya estaba en ejecución"
 		LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
@@ -219,7 +219,7 @@ LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
 		echo
 	else
 		StartD
-		PIDDETECTA=$(pgrep DetectaW5.sh)
+		PIDDETECTA=$(pgrep DetectaW5.sh -o)
 		if [[ ! -z "$PIDDETECTA" ]]; then
 			LoguearW5.sh "IniciarW5" I "Demonio corriendo bajo el nro. $PIDDETECTA"
 			LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
