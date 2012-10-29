@@ -21,7 +21,11 @@
         Los directorios solicitados son subdirectorios del directorio de
         instalación. Puede ingresar un subdirectorio simple como por ejemplo
         "bin" (o "/bin") o un subdirectorio como "sistemas/ejemplo/mae" (o
-        "/sistemas/ejemplo/mae").
+        "/sistemas/ejemplo/mae"). El nombre de directorio no puede ser el mismo
+		para los directorios de arribo de archivos, archivos rechazados, archivos
+		procesados ni archivos archivos aceptados. Tampoco ninguno del resto 
+		de los directorios podrán tener el mismo nombre que el de alguno de 
+		los anteriores mencionados.
         Cuando el sistema le solicite el tamaño máximo de los archivos de
         log (expresado en kbytes) tenga en cuenta que el valor ingresado debe
         ser un número entero.
