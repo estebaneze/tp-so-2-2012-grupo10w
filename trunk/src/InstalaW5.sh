@@ -46,18 +46,19 @@ function ChequearPerl {
 #el tercero el directorio default
 function DefinirDirectorio {
 	local linea
-	if [ -n ${!2} ]; then
-		eval "$2=$GRUPO/$3"
-	fi
+
+
+	eval $2="'$GRUPO/$3'"
+
 	Loguear "I" "${!1} ($3): " 0
 	read linea
 	ChequearSalida $linea
 	if [ "$linea" != "" ]; then
 		Loguear "I" "El usuario ingresó: $linea" 1
-		if [[ $linea = /* ]]; then
-			eval "$2=$GRUPO$linea"
+		if [[ "$linea" = /* ]]; then
+			eval ${2}="'$GRUPO$linea'"
 		else
-			eval "$2=$GRUPO/$linea"
+			eval ${2}="'$GRUPO/$linea'"
 		fi
 	else
 		Loguear "I" "El usuario ingresó el valor por omisión: $3" 1
@@ -90,11 +91,11 @@ function DefinirDataSize {
 	else
 		Loguear "I" "El usuario ingresó el valor por omisión: $DATASIZE" 1
 	fi
-	ARRIDIRTEMP=$ARRIDIR
-	while test ! -e $ARRIDIRTEMP; do
-		ARRIDIRTEMP=$(dirname $ARRIDIRTEMP)
+	ARRIDIRTEMP="$ARRIDIR"
+	while test ! -e "$ARRIDIRTEMP"; do
+		ARRIDIRTEMP=$(dirname "$ARRIDIRTEMP")
 	done	
-		ESPACIOLIBRE=$(df -k $ARRIDIRTEMP | awk 'NR == 2 {print $4}')
+		ESPACIOLIBRE=$(df -k "$ARRIDIRTEMP" | awk 'NR == 2 {print $4}')
 		if [ $ESPACIOLIBRE -lt $DATASIZE ]; then
 			Loguear "A" "Insuficiente espacio en disco." 0
 			Loguear "A" "Espacio disponible: $ESPACIOLIBRE Mb." 0
@@ -125,8 +126,8 @@ function DefinirDataSize {
 function CrearDirectorios {
 	for i in "$@"
 	do
-		if [ ! -d $i ]; then 			
-			mkdir -p -m777 $i
+		if [ ! -d "$i" ]; then 			
+			mkdir -p -m777 "$i"
 			Loguear "I" "	$i" 0
 		fi
 	done
@@ -143,7 +144,7 @@ function Loguear {
 	if [ $3 -eq 0 ]; then	
 		echo "$2"
 	fi
-	$LOGW5/LoguearW5.sh "InstalaW5" "$1" "$2"
+	"$LOGW5/LoguearW5.sh" "InstalaW5" "$1" "$2"
 }
 
 #Guarda las variables de ambiente en el archivo de configuración
@@ -178,9 +179,9 @@ function CargarVariables {
         if [ -z "$linea" ]; then
 	continue
 	fi
-    	var=$(echo $linea | cut -d'=' -f1)
-    	val=$(echo $linea | cut -d'=' -f2)
-    	eval "$var=$val"
+    	var=$(echo "$linea" | cut -d'=' -f1)
+    	val=$(echo "$linea" | cut -d'=' -f2)
+    	eval "$var='$val'"
 	done < "$CONFARCH"
 }
 
@@ -198,29 +199,29 @@ function ChequearInstalacion {
 	#Si alguna variable no esta seteada o no existe la seteo al valor default
 	#No deberia pasar, pero por las dudas que el usuario haya tocado
 	#el archivo de configuracion
-	if [ -z $BINDIR ]; then	BINDIR=$GRUPO/bin; fi
-	if [ -z $CONFDIR ]; then CONFDIR=$BINDIR/conf; fi
-	if [ -z $TEMPDIR ]; then TEMPDIR=$BINDIR/temp; fi
-	if [ -z $MAEDIR ]; then	MAEDIR=$GRUPO/mae; fi
-	if [ -z $ARRIDIR ]; then ARRIDIR=$GRUPO/arribos; fi
-	if [ -z $ACEPDIR ]; then ACEPDIR=$GRUPO/aceptados; fi
-	if [ -z $RECHDIR ]; then RECHDIR=$GRUPO/rechazados; fi
-	if [ -z $PROCDIR ]; then PROCDIR=$GRUPO/procesados; fi
-	if [ -z $REPODIR ]; then REPODIR=$GRUPO/reportes; fi
-	if [ -z $LOGDIR ]; then LOGDIR=$GRUPO/log; fi
-	if [ -z $LOGEXT ]; then LOGEXT=".log"; fi
-	if [ -z $LOGSIZE ]; then LOGSIZE=400; fi
-	if [ -z $DATASIZE ]; then DATASIZE=100; fi	
+	if [ -z "$BINDIR" ]; then	BINDIR="$GRUPO/bin"; fi
+	if [ -z "$CONFDIR" ]; then CONFDIR="$BINDIR/conf"; fi
+	if [ -z "$TEMPDIR" ]; then TEMPDIR="$BINDIR/temp"; fi
+	if [ -z "$MAEDIR" ]; then	MAEDIR="$GRUPO/mae"; fi
+	if [ -z "$ARRIDIR" ]; then ARRIDIR="$GRUPO/arribos"; fi
+	if [ -z "$ACEPDIR" ]; then ACEPDIR="$GRUPO/aceptados"; fi
+	if [ -z "$RECHDIR" ]; then RECHDIR="$GRUPO/rechazados"; fi
+	if [ -z "$PROCDIR" ]; then PROCDIR="$GRUPO/procesados"; fi
+	if [ -z "$REPODIR" ]; then REPODIR="$GRUPO/reportes"; fi
+	if [ -z "$LOGDIR" ]; then LOGDIR="$GRUPO/log"; fi
+	if [ -z "$LOGEXT" ]; then LOGEXT=".log"; fi
+	if [ -z "$LOGSIZE" ]; then LOGSIZE=400; fi
+	if [ -z "$DATASIZE" ]; then DATASIZE=100; fi	
 	
 	#Chequeo que se encuentre en $BINDIR o $GRUPO el archivo LoguearW5.sh
 	#Si no se encuentra sale de la instalación, si se encuentra, se setea la 
 	#variable LOGW5 a donde se encuentre
-	if [ -e $BINDIR/LoguearW5.sh ]; then
-		LOGW5=$BINDIR
-	elif [ -e $GRUPO/LoguearW5.sh ]; then
-		LOGW5=$GRUPO
+	if [ -e "$BINDIR/LoguearW5.sh" ]; then
+		LOGW5="$BINDIR"
+	elif [ -e "$GRUPO/LoguearW5.sh" ]; then
+		LOGW5="$GRUPO"
 		#Seteo permiso de ejecucion al LoguearW5
-		chmod 755 $GRUPO/LoguearW5.sh
+		chmod 755 "$GRUPO/LoguearW5.sh"
 	else
 		echo "No se encuentra el archivo LoguearW5.sh en $GRUPO. No se puede continuar con la instalación"
 		echo "Saliendo de la instalacion"		
@@ -236,27 +237,27 @@ function ChequearInstalacion {
 	declare -a binarios
 	declare -a maestros
 	declare -a dirfaltantes
-	directorios=( $BINDIR $MAEDIR $ARRIDIR $ACEPDIR $RECHDIR $PROCDIR $REPODIR $LOGDIR )
+	directorios=( "$BINDIR" "$MAEDIR" "$ARRIDIR" "$ACEPDIR" "$RECHDIR" "$PROCDIR" "$REPODIR" "$LOGDIR" )
 	binarios=( IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD Terminar.sh )
 	maestros=( patrones sistemas )
 
 	#Reviso si hay archivos o directorios faltantes
 	for i in "${directorios[@]}"
 	do
-		if [ ! -d $i ]; then
-			dirfaltantes+=($i)
+		if [ ! -d "$i" ]; then
+			dirfaltantes+=("$i")
 		fi
 	done
 	for i in "${binarios[@]}"
 	do
-		if [ ! -e $BINDIR/$i ]; then
-			archfaltantes+=($i)
+		if [ ! -e "$BINDIR/$i" ]; then
+			archfaltantes+=("$i")
 		fi
 	done
 	for i in "${maestros[@]}"
 	do
-		if [ ! -e $MAEDIR/$i ]; then
-			archfaltantes+=($i)
+		if [ ! -e "$MAEDIR/$i" ]; then
+			archfaltantes+=("$i")
 		fi
 	done
 	#Chequeo que Perl esté instalado
@@ -299,22 +300,22 @@ function ChequearInstalacion {
 
 		#Listo los componentes existentes y faltantes y retorno 1
 		Loguear "I" "Componentes Existentes:" 0
-		if [ -d $BINDIR ]; then
+		if [ -d "$BINDIR" ]; then
 			Loguear "I" "	Ejecutables: $BINDIR" 0
 			for i in "${binarios[@]}"
 			do
-				if [ -e $BINDIR/$i ]; then
+				if [ -e "$BINDIR/$i" ]; then
 					Loguear "I" "		$i" 0
 				fi
 			done
 		else
 			Loguear "I" "	Ejecutables: Ninguno" 0
 		fi
-		if [ -d $MAEDIR ]; then
+		if [ -d "$MAEDIR" ]; then
 			Loguear "I" "	Archivos Maestros: $MAEDIR" 0
 			for i in "${maestros[@]}"
 			do
-				if [ -e $MAEDIR/$i ]; then
+				if [ -e "$MAEDIR/$i" ]; then
 					Loguear "I" "		$i" 0
 				fi
 			done
@@ -324,11 +325,11 @@ function ChequearInstalacion {
 		Loguear "I" "Componentes faltantes:" 0
 		for i in "${dirfaltantes[@]}"
 		do
-			Loguear "I" "	$i" 0
+			Loguear "I" "	Directorio: $i" 0
 		done
 		for i in "${archfaltantes[@]}"
 		do
-			Loguear "I" "	$i" 0
+			Loguear "I" "	Archivo $i" 0
 		done
 		Loguear "I" "Estado de la instalacion: INCOMPLETA" 0
 		return 1;
@@ -363,7 +364,7 @@ function ChequearInstalables {
 	contador=0
 	for i in "$@"
 	do
-		if [ ! -e $GRUPO/$i ]; then
+		if [ ! -e "$GRUPO/$i" ]; then
 			if [ $contador -eq 0 ]; then
 				Loguear "SE" "No se encuentran los siguientes archivos de instalación en $GRUPO:" 0
 			fi
@@ -390,10 +391,10 @@ function MoverArchivos {
 	for i in $(seq 2 $#)
 	do
 		if [ ! -e "$1/${!i}" ]; then
-			mv $GRUPO/${!i} $1
+			mv "$GRUPO"/${!i} "$1"
 			#Si estoy moviendo LoguearW5.sh seteo la variable LOGW5 al path donde lo movi
 			if [ ${!i} = "LoguearW5.sh" ]; then
-				LOGW5=$BINDIR
+				LOGW5="$BINDIR"
 			fi
 			Loguear "I" "	${!i}" 0
 		fi
@@ -424,40 +425,59 @@ function ChequearSalida {
 		exit 2
 	fi
 }
+
+####################################################################################################
+
+#Chequea si el nombre de directorio pasado en el primer parametro es igual al resto de los nombres 
+#de directorios pasados en los subsiguientes parametros
+#Valor de retorno: 
+#			0: el nombre de directorio no esta repetido
+#			1: el nombre de directorio esta repetido
+function ChequearDirectorioRepetido {
+	for i in $(seq 2 $#)
+	do
+		if [ "$1" = "${!i}" ]; then
+			echo "Ese nombre de directorio ya lo ha suministrado anteriormente, por favor elija otro."
+			return 1 
+		fi		
+	done
+	return 0
+}
+
 ####################################################################################################
 ##                                          COMIENZO                                              ##
 ####################################################################################################
 
 #Inicio de instalacion
-export GRUPO=$PWD
-INSTCONFDIR=$GRUPO/confdir
+export GRUPO="$PWD"
+INSTCONFDIR="$GRUPO/confdir"
 
-INSTCONFPATH=$INSTCONFDIR/ConfPath.conf
-LOGINSTARCH=$INSTCONFDIR/InstalaW5.log
+INSTCONFPATH="$INSTCONFDIR/ConfPath.conf"
+LOGINSTARCH="$INSTCONFDIR/InstalaW5.log"
 
 
 
 #Compruebo que exista el directorio de configuracion
 #Si no existe, lo creo
-if [ ! -d $INSTCONFDIR ]; then
-	mkdir -m777 $INSTCONFDIR
+if [ ! -d "$INSTCONFDIR" ]; then
+	mkdir -m777 "$INSTCONFDIR"
 fi
 CONFDIR=
 CONFARCH=
-if [ -e $INSTCONFPATH ]; then
-	read CONFDIR < $INSTCONFPATH
+if [ -e "$INSTCONFPATH" ]; then
+	read CONFDIR < "$INSTCONFPATH"
 fi
-if [ ! -z $CONFDIR ] && [ -d $CONFDIR ]; then
-	CONFARCH=$CONFDIR/InstalaW5.conf
+if [ ! -z "$CONFDIR" ] && [ -d "$CONFDIR" ]; then
+	CONFARCH="$CONFDIR/InstalaW5.conf"
 fi
 #Si no existe el archivo de configuración quiere decir
 #que no se instalo nunca
-if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
+if [ -z "$CONFARCH" ] || [ ! -e "$CONFARCH" ]; then
 	#Chequeo que esté el LoguearW5 en $GRUPO, si no está salgo devolviendo 3
-	if [ -e $GRUPO/LoguearW5.sh ]; then
-		LOGW5=$GRUPO
+	if [ -e "$GRUPO/LoguearW5.sh" ]; then
+		LOGW5="$GRUPO"
 		#Seteo permiso de ejecucion al LoguearW5
-		chmod 755 $GRUPO/LoguearW5.sh
+		chmod 755 "$GRUPO/LoguearW5.sh"
 	else
 		echo "No se encuentra el archivo LoguearW5.sh en $GRUPO. No se puede continuar con la instalación"
 		echo "Saliendo de la instalacion"		
@@ -483,17 +503,29 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 		exit 1
 	fi
 	#Defino datos de instalacion
+	#Defino el directorio de binarios
 	MSG="Defina el directorio de grabación de los ejecutables"
 	DefinirDirectorio MSG BINDIR bin
-	CONFDIR=$BINDIR/conf
-	TEMPDIR=$BINDIR/temp
-	CONFARCH=$CONFDIR/InstalaW5.conf
+	CONFDIR="$BINDIR/conf"
+	TEMPDIR="$BINDIR/temp"
+	CONFARCH="$CONFDIR/InstalaW5.conf"
+	#Defino el directorio de archivos maestros
 	MSG="Defina el directorio de instalación de los archivos maestros"
 	DefinirDirectorio MSG MAEDIR mae
 	while [ "$RESPUESTA" != "Si" ]
 	do
-		MSG="Defina el directorio de grabación de archivos externos"
-		DefinirDirectorio MSG ARRIDIR arribos
+		#Defino el directorio de archivos externos
+		DIR_NO_REPETIDO=1
+		while [ $DIR_NO_REPETIDO -eq 1 ]
+		do 
+			MSG="Defina el directorio de grabación de archivos externos"
+			DefinirDirectorio MSG ARRIDIR arribos
+			ChequearDirectorioRepetido "$ARRIDIR" "$BINDIR" "$MAEDIR"
+			if [ $? -eq 0 ]; then
+				DIR_NO_REPETIDO=0
+			fi
+		done
+		#Defino DATASIZE
 		DATASIZE=100
 		DefinirDataSize
 		if [ $? -eq 1 ]; then
@@ -501,25 +533,63 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 			Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
 			exit 2
 		fi
-		MSG="Defina el directorio de grabación de los archivos externos rechazados"
-		DefinirDirectorio MSG RECHDIR rechazados
-		MSG="Defina el directorio de grabación de los archivos externos aceptados"
-		DefinirDirectorio MSG ACEPDIR aceptados
-		MSG="Defina el directorio de grabación de los archivos procesados"
-		DefinirDirectorio MSG PROCDIR procesados
-		MSG="Defina el directorio de grabación de los archivos de log"
-		DefinirDirectorio MSG LOGDIR log		
-		LOGEXT=.log
+		#Defino el directorio de archivos rechazados
+		DIR_NO_REPETIDO=1
+		while [ $DIR_NO_REPETIDO -eq 1 ]
+		do 
+			MSG="Defina el directorio de grabación de los archivos externos rechazados"
+			DefinirDirectorio MSG RECHDIR rechazados
+			ChequearDirectorioRepetido "$RECHDIR" "$ARRIDIR" "$BINDIR" "$MAEDIR"
+			if [ $? -eq 0 ]; then
+				DIR_NO_REPETIDO=0
+			fi
+		done
+		#Defino el directorio de archivos aceptados
+		DIR_NO_REPETIDO=1
+		while [ $DIR_NO_REPETIDO -eq 1 ]
+		do 
+			MSG="Defina el directorio de grabación de los archivos externos aceptados"
+			DefinirDirectorio MSG ACEPDIR aceptados
+			ChequearDirectorioRepetido "$ACEPDIR" "$ARRIDIR" "$RECHDIR" "$BINDIR" "$MAEDIR"
+			if [ $? -eq 0 ]; then
+				DIR_NO_REPETIDO=0
+			fi
+		done
+		#Defino el directorio de archivos procesados
+		DIR_NO_REPETIDO=1
+		while [ $DIR_NO_REPETIDO -eq 1 ]
+		do 
+			MSG="Defina el directorio de grabación de los archivos procesados"
+			DefinirDirectorio MSG PROCDIR procesados
+			ChequearDirectorioRepetido "$PROCDIR" "$ACEPDIR" "$ARRIDIR" "$RECHDIR" "$BINDIR" "$MAEDIR"
+			if [ $? -eq 0 ]; then
+				DIR_NO_REPETIDO=0
+			fi
+		done
+		#Defino el directorio de archivos de log
+		DIR_NO_REPETIDO=1
+		while [ $DIR_NO_REPETIDO -eq 1 ]
+		do
+			MSG="Defina el directorio de grabación de los archivos de log"
+			DefinirDirectorio MSG LOGDIR log
+			ChequearDirectorioRepetido "$LOGDIR" "$PROCDIR" "$ACEPDIR" "$ARRIDIR" "$RECHDIR"
+			if [ $? -eq 0 ]; then
+				DIR_NO_REPETIDO=0
+			fi
+		done
+		#Defino la extension de los archivos de log
+		LOGEXT=".log"
 		Loguear "I" "Defina la extensión para los archivos de log ($LOGEXT): " 0
 		read linea
 		ChequearSalida $linea
 		if [ "$linea" != "" ]; then
 			if [[ "$linea" = .* ]]; then
-				LOGEXT=$linea
+				LOGEXT="$linea"
 			else
 				LOGEXT=".$linea"
 			fi
-		fi		
+		fi
+		#Defino el tamaño de los archivos de log		
 		LOGSIZE=400
 		Loguear "I" "Defina el tamaño máximo para los archivos $LOGEXT en Kbytes ($LOGSIZE): " 0
 		read linea
@@ -538,8 +608,18 @@ if [ -z $CONFARCH ] || [ ! -e $CONFARCH ]; then
 		else
 			Loguear "I" "El usuario ingresó el valor por omisión: $LOGSIZE" 1
 		fi
-		MSG="Defina el directorio de grabación de los reportes de salida"
-		DefinirDirectorio MSG REPODIR reportes
+		#Defino el directorio de archivos de reportes
+		DIR_NO_REPETIDO=1
+		while [ $DIR_NO_REPETIDO -eq 1 ]
+		do
+			MSG="Defina el directorio de grabación de los reportes de salida"
+			DefinirDirectorio MSG REPODIR reportes
+			ChequearDirectorioRepetido "$REPODIR" "$PROCDIR" "$ACEPDIR" "$ARRIDIR" "$RECHDIR"
+			if [ $? -eq 0 ]; then
+				DIR_NO_REPETIDO=0
+			fi
+		done
+		#Limpio pantalla e informo datos de instalacion		
 		clear
 		InformarDatosInstalacion
 		Loguear "I" "Estado de la instalacion: LISTA" 0
@@ -615,15 +695,15 @@ fi
 
 #Comienza la instalacion
 Loguear "I" "Creando Estructura de directorios. . . ." 0
-CrearDirectorios $BINDIR $MAEDIR $ARRIDIR $RECHDIR $ACEPDIR $PROCDIR $LOGDIR $REPODIR $CONFDIR $TEMPDIR
+CrearDirectorios "$BINDIR" "$MAEDIR" "$ARRIDIR" "$RECHDIR" "$ACEPDIR" "$PROCDIR" "$LOGDIR" "$REPODIR" "$CONFDIR" "$TEMPDIR"
 
 Loguear "I" "Instalando Archivos Maestros. . . ." 0
-MoverArchivos $MAEDIR patrones sistemas
+MoverArchivos "$MAEDIR" patrones sistemas
 
 Loguear "I" "Instalando Programas y Funciones. . . ." 0
-MoverArchivos $BINDIR IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD Terminar.sh
+MoverArchivos "$BINDIR" IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD Terminar.sh
 
-echo "$CONFDIR" > $INSTCONFPATH
+echo "$CONFDIR" > "$INSTCONFPATH"
 Loguear "I" "Actualizando la configuración del sistema. . . ." 0
 GuardarVariables
 

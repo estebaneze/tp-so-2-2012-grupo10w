@@ -90,7 +90,7 @@ why=$mensaje
 echo "$when-$who-$where-$what-$why" >> "$archivoLog"
 
 #valido tamano Log
-tamanoLog=`echo "$(stat -c%s $archivoLog)/1024" | bc`
+tamanoLog=`echo "$(stat -c%s "$archivoLog")/1024" | bc`
 
 if [ $tamanoLog -ge "$tamanoLogPar" ]; then
 	when=$(date '+%Y%m%d %T')
