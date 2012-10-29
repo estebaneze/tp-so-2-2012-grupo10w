@@ -4,12 +4,6 @@ if [ -e ./.cont_temp ]; then
     rm ./.cont_temp
 
     echo "Deteniendo comando DetectaW5..."
-
-    #while [ $(ps | grep "DetectaW5.sh" | wc -l) -eq 1 ]
-    #do
-	#echo "..."
-    #done
-    #echo "DetectaW5 se ha detenido correctamente"
 	
 	pkill "DetectaW5.sh"
 	PIDDETECTA=$(pgrep DetectaW5.sh)
