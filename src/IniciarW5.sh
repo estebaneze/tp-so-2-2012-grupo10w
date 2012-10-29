@@ -42,11 +42,8 @@ do
 			echo
 			LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
 			read -p "Presione Enter para salir..."
-			break
-		else
 			echo ; echo ; echo
-			echo "Estado del sistema: INICIALIZADO"
-			echo
+			break
 		fi
 
 		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
@@ -61,15 +58,18 @@ do
 	#levanta las variables a memoria desde el archivo de configuración
 	declare -a VARS=()
 	declare -a VALS=()
-
+	
+	oIFS=$IFS
+	IFS="="
 	while read linea; do
 		if [ -z "$linea" ]; then continue; fi
-		var=$(echo $linea | cut -d'=' -f1)
+		var=$(echo "$linea" | cut -d'=' -f1)
 		VARS=(${VARS[@]} "$var")
-		val=$(echo $linea | cut -d'=' -f2)
+		val=$(echo "$linea" | cut -d'=' -f2)
 		VALS=(${VALS[@]} "$val")
-		declare -x "$(echo $var)=$(echo $val)"
+		declare -x "$(echo "$var")=$(echo "$val")"
 	done < "$ARCH_CONFIG"
+	IFS=$oIFS
 
 	#si no se puede leer BINDIR, indica el error y sale
 	if [ -z "$BINDIR" ]; then
@@ -122,12 +122,10 @@ do
 		echo "Estado de la instalación: INCOMPLETA"
 		echo "Proceso de inicialización cancelado"
 		echo		
-LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
+		LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
 		read -p "Presione Enter para salir..."
 		break
-	else
-		echo "Estado del sistema: INICIALIZADO"
-		echo
+		echo; echo; echo
 	fi
 
 	###################################################################
@@ -205,6 +203,8 @@ LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
 		read -p "Presione Enter para salir..."
 		break
 	fi
+
+	echo "Estado del sistema: INICIALIZADO"
 
 	###################################################################
 

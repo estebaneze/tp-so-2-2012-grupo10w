@@ -7,24 +7,24 @@ codigo_rechazo=0
 
 #verifico inicializacion de ambiente
 #verifico que las variables no sean nulas
-if [ -z $ARRIDIR ]; then
+if [ -z "$ARRIDIR" ]; then
         error_ambiente=true
-elif [ -z $ACEPDIR ]; then
+elif [ -z "$ACEPDIR" ]; then
         error_ambiente=true
-elif [ -z $RECHDIR ]; then
+elif [ -z "$RECHDIR" ]; then
         error_ambiente=true
-elif [ -z $PROCDIR ]; then
+elif [ -z "$PROCDIR" ]; then
         error_ambiente=true
 fi
 
 #verifico existencia de directorios
-if [ ! -d $ARRIDIR ]; then
+if [ ! -d "$ARRIDIR" ]; then
 	error_ambiente=true
-elif [ ! -d $RECHDIR ]; then
+elif [ ! -d "$RECHDIR" ]; then
         error_ambiente=true
-elif [ ! -d $ACEPDIR ]; then
+elif [ ! -d "$ACEPDIR" ]; then
         error_ambiente=true
-elif [ ! -d $PROCDIR ]; then
+elif [ ! -d "$PROCDIR" ]; then
         error_ambiente=true
 fi
 
@@ -43,14 +43,14 @@ while [ -e ./.cont_temp ] #mientras exista el archivo temporal cont_temp se cont
 do
 
 	#guardo archivos de ARRIDIR en un temporal
-	ls -1p $ARRIDIR | grep -v /\$ > .archivos_temp
+	ls -1p "$ARRIDIR" | grep -v /\$ > .archivos_temp
 
 
 	#cuento cantidad de archivos
 	cant_archivos=$(wc -l < .archivos_temp)
 	
 	# obtengo todo los codigos de sistema con su fecha de alta y baja
-	cut -f1,3,4 -d',' $MAEDIR/sistemas > .cod_sis_temp
+	cut -f1,3,4 -d',' "$MAEDIR/sistemas" > .cod_sis_temp
 	cant_sistemas=$(wc -l < .cod_sis_temp)
 	
 	#recorro cada archivo de ARRIDIR y los valido contra MAEDIR/sistemas
@@ -210,7 +210,7 @@ do
 
     #chequeo existencia de archivos en directorio ACEPDIR
     
-    ls -1p $ACEPDIR | grep -v /\$ > .archivos_acep_temp
+    ls -1p "$ACEPDIR" | grep -v /\$ > .archivos_acep_temp
     cant_acep=$(wc -l < .archivos_acep_temp)
     
     #si existen archivos en ACEPDIR ejecuto comando BuscarW5.sh
