@@ -5,7 +5,6 @@ BUSCAR:
 "E" "Archivo ${linea} ya se encuentra procesado"
 "I" "No hay patrones aplicables para este archivo"
 "I" "Fin de ciclo: ${nro_ciclo} - Cant Arch con Hallazgos: ${cant_hzgo} - Cant. Arch sin Hallazgos: ${cant_s_hzgo} - Cant Arch sin Patron Aplicable: ${cant_s_patron} "
-"I" "Inicio BuscarW5 - Ciclo Nro.: ${nro_ciclo} - Cantidad de Archivos ${cant_archivos}"
 "I" "Archivo a procesar: ${linea}"
 "E" "Archivo ${linea} ya se encuentra procesado"
 "I" "No hay patrones aplicables para este archivo"
