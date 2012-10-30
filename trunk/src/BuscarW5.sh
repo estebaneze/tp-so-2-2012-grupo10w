@@ -164,8 +164,7 @@ while read linea; do
 						let hastacar+=desdecar
 						let hastacar+=cuantos
 						let hastacar-=1
-						#echo " archivo: $linea	caracterpatron $pat_exp	nrolineaarch: $nro_linealog	desde $desde hasta $nhasta cuantos $cuantos poshallado $pos_hallado hastacar $hastacar desdecar $desdecar"
-						#cat .bus
+
 						hallado=$(cat .bus | cut -c$desdecar-$hastacar) 
 						rm .bus
 						IFS=$IFSOLD
