@@ -16,7 +16,13 @@ function moverW5 {
 			if [ -d "$2" ]
 			then
 				SEC=$(ls "$2" | grep "$(basename "$1")" | cut -d. -f3 | tail -1)
-				SEC=$(expr $SEC + 1)
+
+				if [ -z $SEC ]
+                                then
+                                SEC=0
+                                else
+                                SEC=$( expr $SEC + 1 )
+                                fi
 
 				NEWPATH="$2""/"$(basename "$1")"."$SEC
 				mv "$1" "$NEWPATH"
