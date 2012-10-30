@@ -151,8 +151,6 @@ while read linea; do
 						rm .buslinea
 						echo $linealog | sed "s/^[0-9][0-9]*://" >>.bus 2> "/dev/null"
 
-							
-									
 						expre="grep -bo $pat_exp .bus|cut -d\: -f 1" 
 						pos_hallado=$(eval $expre) 
 						let pos_hallado+=1
