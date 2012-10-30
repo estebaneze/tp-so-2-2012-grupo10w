@@ -91,6 +91,7 @@ while read linea; do
 		#separo los campos
 		pat_id=$(echo $lineap | cut -d \, -f 1)
 		pat_exp=$(echo $lineap | cut -d \, -f 2)
+		pat_exp=$( echo "$pat_exp" | tr -d "\'")
 		sis_id=$(echo $lineap | cut -d \, -f 3)
 		pat_con=$(echo $lineap | cut -d \, -f 4)
 		desde=$(echo $lineap | cut -d \, -f 5)
@@ -107,7 +108,10 @@ while read linea; do
 
 			#bus="grep -n "$pat_exp" "$ACEPDIR/$linea" >> .busqueda"
 			#eval $bus
-			grep -n "$pat_exp" "$ACEPDIR/$linea" >> .busqueda 
+lalala="$ACEPDIR/$linea"
+
+			grep -n "${pat_exp}" "${lalala}" >> .busqueda
+#cat .busqueda
 			cant_hzgo_arch=$(wc -l < .busqueda)
 
 			if [ $cant_hzgo_arch > 0 ];
@@ -129,9 +133,9 @@ while read linea; do
 						while [ $cuantosguardo -ne 0 ]; do
 							let cuantosguardo-=1
 							
-							hallar="head -$nro_linealog "$ACEPDIR/$linea" | tail -1" 
-							hallado=$(eval $hallar)
-							echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> "$PROCDIR/resultados"."${pat_id}"			
+							#hallar="head -$nro_linealog "$ACEPDIR/$linea" | tail -1" 
+							hallado=$(head -$nro_linealog "$ACEPDIR/$linea" | tail -1)
+							echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> "${PROCDIR}/resultados.${pat_id}"			
 						let nro_linealog+=1						
 						done
 					done < .busqueda
@@ -140,7 +144,6 @@ while read linea; do
 				elif [ "$pat_con" = "caracter" ]; then
 				#cuento cantidad de archivos
 				cant_lineasarch=$(wc -l < .busqueda)
-				
 				for i in $(seq 1 $cant_lineasarch)
 					do
 						IFSOLD=$IFS
@@ -153,8 +156,8 @@ while read linea; do
 						rm .buslinea
 						echo $linealog | sed "s/^[0-9][0-9]*://" >>.bus 2> "/dev/null"
 
-						expre="grep -bo $pat_exp .bus|cut -d\: -f 1" 
-						pos_hallado=$(eval $expre) 
+						#expre="grep -bo $pat_exp .bus|cut -d\: -f 1" 
+						pos_hallado=$(grep -bo "$pat_exp" .bus|cut -d\: -f 1) 
 						let pos_hallado+=1
 						hastacar=0
 						desdecar=0	
@@ -168,13 +171,13 @@ while read linea; do
 						hallado=$(cat .bus | cut -c$desdecar-$hastacar) 
 						rm .bus
 						IFS=$IFSOLD
-						echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> "$PROCDIR/resultados"."${pat_id}"			
+						echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> "${PROCDIR}/resultados.${pat_id}"			
 					done 
 				
 				fi  	
 			fi
 			rm .busqueda
-			echo "${nro_ciclo},${linea},${cant_hzgo_arch},${pat_exp},${pat_con},${desde},${hasta}" >> "$PROCDIR/rglobales"."${pat_id}"
+			echo "${nro_ciclo},${linea},${cant_hzgo_arch},${pat_exp},${pat_con},${desde},${hasta}" >> "${PROCDIR}/rglobales.${pat_id}"
 		fi	
 		
 	done < "$MAEDIR/patrones"	
