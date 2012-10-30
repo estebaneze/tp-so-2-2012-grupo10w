@@ -66,7 +66,7 @@ do
 	    if [ $(echo $archivo | grep '.*_[0-9]\{4,4\}-[0-9]\{1,2\}-[0-9]\{1,2\}$' -c -i) -eq 1 ]; then
 			
 		    #valido que sea un archivo de texto
-		    if [ -r $ARRIDIR/$archivo ]; then
+		    if [ -r "$ARRIDIR/$archivo" ]; then
 		
 			    #separo los campos
 			    sis_id1=$(echo $archivo | cut -d \_ -f 1) 
@@ -165,7 +165,7 @@ do
 	    if [ "$sis_valido" != false ]; then 
 			
 		#habilitar lo que sigue cuando se integre todo			
-		MoverW5.sh $ARRIDIR/$archivo $ACEPDIR "DetectaW5"
+		MoverW5.sh "$ARRIDIR/$archivo" "$ACEPDIR" "DetectaW5"
 		mensaje="Se movio el archivo $archivo al directorio de aceptados"
 		sh LoguearW5.sh "DetectaW5" "I" "$mensaje"	
 			
@@ -194,7 +194,7 @@ do
 		    sh LoguearW5.sh "DetectaW5" "E" "$mensaje"
 		fi		
 		#habilitar lo que sigue cuando se integre todo			
-		MoverW5.sh $ARRIDIR/$archivo $RECHDIR "DetectaW5"
+		MoverW5.sh "$ARRIDIR/$archivo" "$RECHDIR" "DetectaW5"
 					
 		#comentar lo que sigue cuando se integre
 		#mv $ARRIDIR/$archivo $RECHDIR/$archivo
