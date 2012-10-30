@@ -54,8 +54,9 @@ cant_archivos=$(wc -l < .temp_archivosB)
 nro_ciclo=$(grep -o 'SECUENCIA2=[0-9][0-9]*' "$CONFDIR/InstalaW5.conf" | cut -d \= -f 2 ) 
 let nro_ciclo+=1 
 
-var="sed -i 's/SECUENCIA2=[0-9][0-9]*/SECUENCIA2=${nro_ciclo}/' "$CONFDIR/InstalaW5.conf""
-evalsed=$(eval $var) 
+#var="sed -i 's/SECUENCIA2=[0-9][0-9]*/SECUENCIA2=${nro_ciclo}/' "$CONFDIR/InstalaW5.conf""
+evalsed=$(sed -i "s/SECUENCIA2=[0-9][0-9]*/SECUENCIA2=${nro_ciclo}/" "$CONFDIR/InstalaW5.conf") 
+#evalsed=$(eval $var)
 
 #Inicializar el log
 LoguearW5.sh "BuscarW5" "I" "Inicio BuscarW5 - Ciclo Nro.: ${nro_ciclo} - Cantidad de Archivos ${cant_archivos}"
@@ -104,8 +105,9 @@ while read linea; do
 			separador="+-#-+"
 			nro_linea=0
 
-			bus="grep -n  $pat_exp  "$ACEPDIR/$linea" >> .busqueda"
-			eval $bus 
+			#bus="grep -n "$pat_exp" "$ACEPDIR/$linea" >> .busqueda"
+			#eval $bus
+			grep -n "$pat_exp" "$ACEPDIR/$linea" >> .busqueda 
 			cant_hzgo_arch=$(wc -l < .busqueda)
 
 			if [ $cant_hzgo_arch > 0 ];
