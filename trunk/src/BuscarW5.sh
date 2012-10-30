@@ -6,32 +6,32 @@ error_ambiente=false
 #verifico inicializacion de ambiente
 #verifico que las variables no sean nulas
 
-if [ -z $ARRIDIR ]; then
+if [ -z "$ARRIDIR" ]; then
         error_ambiente=true
-elif [ -z $ACEPDIR ]; then
+elif [ -z "$ACEPDIR" ]; then
         error_ambiente=true
-elif [ -z $RECHDIR ]; then
+elif [ -z "$RECHDIR" ]; then
         error_ambiente=true
-elif [ -z $PROCDIR ]; then
+elif [ -z "$PROCDIR" ]; then
         error_ambiente=true
-elif [ -z $MAEDIR ]; then
+elif [ -z "$MAEDIR" ]; then
         error_ambiente=true
-elif [ -z $CONFDIR ]; then
+elif [ -z "$CONFDIR" ]; then
         error_ambiente=true
 fi
 
 #verifico existencia de directorios
-if [ ! -d $ARRIDIR ]; then
+if [ ! -d "$ARRIDIR" ]; then
         error_ambiente=true
-elif [ ! -d $RECHDIR ]; then
+elif [ ! -d "$RECHDIR" ]; then
         error_ambiente=true
-elif [ ! -d $ACEPDIR ]; then
+elif [ ! -d "$ACEPDIR" ]; then
         error_ambiente=true
-elif [ ! -d $PROCDIR ]; then
+elif [ ! -d "$PROCDIR" ]; then
         error_ambiente=true
-elif [ ! -d $MAEDIR ]; then
+elif [ ! -d "$MAEDIR" ]; then
         error_ambiente=true
-elif [ ! -d $CONFDIR ]; then
+elif [ ! -d "$CONFDIR" ]; then
         error_ambiente=true
 fi
 
@@ -45,16 +45,16 @@ fi
 #Cuento la cantidad de archivos a procesar
 
 #Guardo archivos de ARRIDIR en un temporal
-ls -1p $ACEPDIR | grep -v /\$ > .temp_archivosB
+ls -1p "$ACEPDIR" | grep -v /\$ > .temp_archivosB
 
 #Cuento cantidad de archivos
 cant_archivos=$(wc -l < .temp_archivosB)
 
 #Busco numero de ciclo en archivo de configuracion y lo actualizo
-nro_ciclo=$(grep -o 'SECUENCIA2=[0-9][0-9]*' $CONFDIR/InstalaW5.conf | cut -d \= -f 2 ) 
+nro_ciclo=$(grep -o 'SECUENCIA2=[0-9][0-9]*' "$CONFDIR/InstalaW5.conf" | cut -d \= -f 2 ) 
 let nro_ciclo+=1 
 
-var="sed -i 's/SECUENCIA2=[0-9][0-9]*/SECUENCIA2=${nro_ciclo}/'  $CONFDIR/InstalaW5.conf"
+var="sed -i 's/SECUENCIA2=[0-9][0-9]*/SECUENCIA2=${nro_ciclo}/' "$CONFDIR/InstalaW5.conf""
 evalsed=$(eval $var) 
 
 #Inicializar el log
@@ -72,12 +72,12 @@ while read linea; do
 	LoguearW5.sh "BuscarW5" "I" "Archivo a procesar: ${linea}"
 
 	#Verifico que el archivo no haya sido procesado
-	if [ $(find $PROCDIR -name $linea | wc -l) -eq 1 ]
+	if [ $(find "$PROCDIR" -name $linea | wc -l) -eq 1 ]
 	then
 		#Logueo y muevo el archivo
 		LoguearW5.sh "BuscarW5" "E" "Archivo ${linea} ya se encuentra procesado"
 		#comentar lo que sigue cuando se integre
-		MoverW5.sh $ACEPDIR/$linea $RECHDIR "BuscarW5"
+		MoverW5.sh "$ACEPDIR/$linea" "$RECHDIR" "BuscarW5"
 	fi
 
 	#Inicializo variables
@@ -104,7 +104,7 @@ while read linea; do
 			separador="+-#-+"
 			nro_linea=0
 
-			bus="grep -n  $pat_exp  $ACEPDIR/$linea >> .busqueda"
+			bus="grep -n  $pat_exp  "$ACEPDIR/$linea" >> .busqueda"
 			eval $bus 
 			cant_hzgo_arch=$(wc -l < .busqueda)
 
@@ -127,9 +127,9 @@ while read linea; do
 						while [ $cuantosguardo -ne 0 ]; do
 							let cuantosguardo-=1
 							
-							hallar="head -$nro_linealog $ACEPDIR/$linea | tail -1" 
+							hallar="head -$nro_linealog "$ACEPDIR/$linea" | tail -1" 
 							hallado=$(eval $hallar)
-							echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> $PROCDIR/resultados."${pat_id}"			
+							echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> "$PROCDIR/resultados"."${pat_id}"			
 						let nro_linealog+=1						
 						done
 					done < .busqueda
@@ -166,16 +166,16 @@ while read linea; do
 						hallado=$(cat .bus | cut -c$desdecar-$hastacar) 
 						rm .bus
 						IFS=$IFSOLD
-						echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> $PROCDIR/resultados."${pat_id}"			
+						echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> "$PROCDIR/resultados"."${pat_id}"			
 					done 
 				
 				fi  	
 			fi
 			rm .busqueda
-			echo "${nro_ciclo},${linea},${cant_hzgo_arch},${pat_exp},${pat_con},${desde},${hasta}" >> $PROCDIR/rglobales."${pat_id}"
+			echo "${nro_ciclo},${linea},${cant_hzgo_arch},${pat_exp},${pat_con},${desde},${hasta}" >> "$PROCDIR/rglobales"."${pat_id}"
 		fi	
 		
-	done < $MAEDIR/patrones	
+	done < "$MAEDIR/patrones"	
 
 	if [ $conhallazgo -eq 1 ]; then 
 		let cant_hzgo+=1
@@ -189,7 +189,7 @@ while read linea; do
 	fi
 
 	#habilitar lo que sigue cuando se integre todo
-        MoverW5.sh $ACEPDIR/$linea $PROCDIR "BuscarW5"
+        MoverW5.sh "$ACEPDIR/$linea" "$PROCDIR" "BuscarW5"
 	
 done < .temp_archivosB
 
