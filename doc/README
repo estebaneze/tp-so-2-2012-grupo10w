@@ -117,7 +117,43 @@
       de otra manera puede haber comportamiento erroneos en el comando.
     - El tiempo que el demonio permanece dormido se puede setear a traves
       de VI.
+      
+* BuscarW5:
 
+    - Este comando es llamado desde DetectaW5 cuando existen archivos
+      de log en el directorio $ACEPDIR (ver archivo de configuracion).	
+    - BuscarW5 chequea que el ambiente este correctamente inicializado,
+      en caso contrario finaliza su ejecucion.
+    - BuscarW5 se encarga de verificar si los archivos de log en el directorio 
+      $ACEPDIR se encuentran duplicados, si ya fue procesado (se encuentra en el 
+      directorio $PROCDIR) lo mueve a traves del comando MoverW5.sh al directorio 
+      $RECHDIR y guarda en el log el nombre del archivo que ya fue procesado.
+    - Cada vez que se ejecuta aumenta en 1 el numero de ciclo, variable SECUENCIA2 
+      del archivo de configuracion $CONFDIR/InstalaW5.conf, y guarda en el log 
+      informacion del inicio de ejecucion: numero de ciclo y cantidad de archivos a procesar.
+    - Por cada archivo a procesar que se encuentra en el directorio $ACEPDIR:
+	- Guarda en el log el nombre del archivo que esta procesando.
+        - Verifica si existen patrones a aplicar en el archivo $MAEDIR/patrones, si no 
+	  se encuentran se guarda en el log que no hay patrones a aplicar para el archivo.
+        - Si hay patrones a aplicar para el archivo, se recorre el archivo y se le 
+          aplica el patron de busqueda guardando los resultados en los archivos:
+	
+            * $PROCDIR/resultados.{PAT_ID}: guarda un registro por cada linea del archivo 
+              con el que coincide con el patron buscado (PAT_ID: id del patron).
+	    * $PROCDIR/rglobales.{PAT_ID}: guarda un registro por cada archivo procesado 
+              informando la cantidad de hallazgos de ese patron en el archivo, si no se 
+              encontraron registros que coincidan con el patron de busqueda guarda 0 
+              en cantidad de hallazgos (PAT_ID: id del patron).
+	      (Si alguno de los dos archivos no existe los crea, sino agrega los 
+              registros a los archivos existentes)
+
+    - Cuando se termina de procesar un archivo  lo mueve a traves del comando MoverW5.sh 
+      al directorio $PROCDIR y guarda en el log el nombre del archivo que ya fue procesado.
+    - Cuando se terminan de procesar todos los archivos del directorio $ACEPDIR,guarda 
+      en el log el numero de ciclo del comando BuscarW5,la cantidad de archivos procesados, 
+      la cantidad de archivos con hallazgos y sin hallazgos.
+    - Finaliza la ejecucion del comando.
+    
 * ListarW5:
 
     - Este comando permite visualizar de forma comoda los resultados
