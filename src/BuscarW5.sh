@@ -3,16 +3,6 @@
 #variable interna
 error_ambiente=false
 
-##borrar
-#GRUPO="./"
-#ACEPDIR="acepdir"
-#CONFDIR="confdir"
-#CONFARCH="confdir/InstalaW5.conf"
-#PROCDIR="procdir"
-#RECHDIR="rechdir"
-#MAEDIR="maedir"
-#ARRIDIR="arridir"
-
 #verifico inicializacion de ambiente
 #verifico que las variables no sean nulas
 
