@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 #Comando IniciarW5
 
-ARCH_CONFIG='./conf/InstalaW5.conf'
-ARCH_BLOQUEO_INICIAR='./temp/iniciar.bloqueo'
+#ARCH_CONFIG='./conf/InstalaW5.conf'
+#ARCH_BLOQUEO_INICIAR='./temp/iniciar.bloqueo'
+
+BDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ARCH_CONFIG="${BDIR}/conf/InstalaW5.conf"
+ARCH_BLOQUEO_INICIAR="${BDIR}/temp/iniciar.bloqueo"
 TERMINAR_INI=false
 clear
 
@@ -12,8 +16,8 @@ do
 	#verifica que iniciar no haya sido ejecutado antes
 	if [ -e "$ARCH_BLOQUEO_INICIAR" ]; then
 	#escribe un mensaje en el log indicando que iniciar ya fue ejecutado en esta sesión, muestra el estado de los componentes y sale
-		LoguearW5.sh "IniciarW5" I "Inicio de ejecución"
-		LoguearW5.sh "IniciarW5" E "Se intentó inicializar un ambiente ya inicializado"
+		"${BINDIR}"/LoguearW5.sh "IniciarW5" I "Inicio de ejecución"
+		"${BINDIR}"/LoguearW5.sh "IniciarW5" E "Se intentó inicializar un ambiente ya inicializado"
 
 		echo "Componentes existentes:"
 		echo "----------------------"
@@ -40,13 +44,13 @@ do
 			echo "Estado de la instalación: INCOMPLETA"
 			echo "Proceso de inicialización cancelado"
 			echo
-			LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
+			"${BINDIR}"/LoguearW5.sh "IniciarW5" E "La instalación está incompleta"
 			read -p "Presione Enter para salir..."
 			echo ; echo ; echo
 			break
 		fi
 
-		LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
+		"${BINDIR}"/LoguearW5.sh "IniciarW5" I "Fin de la ejecución"
 		echo "No está permitido reinicializar el sistema"
 		echo
 		read -p "Presione Enter para salir..."
@@ -210,7 +214,7 @@ do
 
 	#si no estaba ya iniciado, invoca a DetectaW5, y luego verifica que se esté ejecutando 
 	echo ; echo ; echo
-	PIDDETECTA=$(pgrep DetectaW5.sh -o)
+	PIDDETECTA=$(pgrep "DetectaW5.sh" -o)
 	if [[ ! -z "$PIDDETECTA" ]]; then
 		LoguearW5.sh "IniciarW5" A "DetectaW5 ya estaba en ejecución"
 		LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"
@@ -219,7 +223,7 @@ do
 		echo
 	else
 		StartD
-		PIDDETECTA=$(pgrep DetectaW5.sh -o)
+		PIDDETECTA=$(pgrep "DetectaW5.sh" -o)
 		if [[ ! -z "$PIDDETECTA" ]]; then
 			LoguearW5.sh "IniciarW5" I "Demonio corriendo bajo el nro. $PIDDETECTA"
 			LoguearW5.sh "IniciarW5" I "Proceso de inicialización concluido"

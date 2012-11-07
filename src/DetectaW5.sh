@@ -33,25 +33,25 @@ if [ $error_ambiente != false ]; then
 	echo "Error, inicializacion del ambiente erronea."
 	echo "Se detendra el demonio."
 	#borro dato oculto que hace que se ejecute infinitamente	
-	rm ./.cont_temp
+	rm "${TEMPDIR}/.cont_temp"
 	
 fi
 
 #CICLO PRINCIPAL	
 
-while [ -e ./.cont_temp ] #mientras exista el archivo temporal cont_temp se continua ejecutando el ciclo
+while [ -e "${TEMPDIR}/.cont_temp" ] #mientras exista el archivo temporal cont_temp se continua ejecutando el ciclo
 do
 
 	#guardo archivos de ARRIDIR en un temporal
-	ls -1p "$ARRIDIR" | grep -v /\$ > .archivos_temp
+	ls -1p "$ARRIDIR" | grep -v /\$ > "${TEMPDIR}/.archivos_temp"
 
 
 	#cuento cantidad de archivos
-	cant_archivos=$(wc -l < .archivos_temp)
+	cant_archivos=$(wc -l < "${TEMPDIR}/.archivos_temp")
 	
 	# obtengo todo los codigos de sistema con su fecha de alta y baja
-	cut -f1,3,4 -d',' "$MAEDIR/sistemas" > .cod_sis_temp
-	cant_sistemas=$(wc -l < .cod_sis_temp)
+	cut -f1,3,4 -d',' "$MAEDIR/sistemas" > "${TEMPDIR}/.cod_sis_temp"
+	cant_sistemas=$(wc -l < "${TEMPDIR}/.cod_sis_temp")
 	
 	#recorro cada archivo de ARRIDIR y los valido contra MAEDIR/sistemas
 	for i in $(seq 1 $cant_archivos)
@@ -59,7 +59,7 @@ do
 	   
 	    sis_valido=false
 	    #obtengo nombre del primer archivo
-	    archivo=$(head -n $i .archivos_temp | tail -n 1)
+	    archivo=$(head -n $i "${TEMPDIR}/.archivos_temp" | tail -n 1)
 	
 	   
 	    #valido formato codigoSistema_aaaa-mm-dd
@@ -99,7 +99,7 @@ do
 				    #recorro archivo de sistemas para validar sis_id y fechas
 				    for j in $(seq 1 $cant_sistemas)
 				    do
-					sistema=$(head -n $j .cod_sis_temp | tail -n 1)
+					sistema=$(head -n $j "${TEMPDIR}/.cod_sis_temp" | tail -n 1)
 					#separo los campos	
 					sis_id=$(echo $sistema | cut -d \, -f 1)	
 					fecha_alta=$(echo $sistema | cut -d \, -f 2)
@@ -210,8 +210,8 @@ do
 
     #chequeo existencia de archivos en directorio ACEPDIR
     
-    ls -1p "$ACEPDIR" | grep -v /\$ > .archivos_acep_temp
-    cant_acep=$(wc -l < .archivos_acep_temp)
+    ls -1p "$ACEPDIR" | grep -v /\$ > "${TEMPDIR}/.archivos_acep_temp"
+    cant_acep=$(wc -l < "${TEMPDIR}/.archivos_acep_temp")
     
     #si existen archivos en ACEPDIR ejecuto comando BuscarW5.sh
     if [ $cant_acep -ne 0 ]; then
@@ -222,7 +222,7 @@ do
 	tiempo_espera=10
 	for j in $(seq 1 $tiempo_espera)
 	do
-		if  [ -e ./.cont_temp ]; then 
+		if  [ -e "${TEMPDIR}/.cont_temp" ]; then 
 			sleep 1s
 		else 
 			j=$tiempo_espera
@@ -230,8 +230,8 @@ do
 	done
 	
     #sleep 10s
-    rm .archivos_temp
-    rm .cod_sis_temp
-    rm .archivos_acep_temp
+    rm "${TEMPDIR}/.archivos_temp"
+    rm "${TEMPDIR}/.cod_sis_temp"
+    rm "${TEMPDIR}/.archivos_acep_temp"
 
 done

@@ -1,7 +1,7 @@
 #!/bin/bash
-if [ -e ./.cont_temp ]; then
+if [ -e "${TEMPDIR}/.cont_temp" ]; then
 
-    rm ./.cont_temp
+    rm "${TEMPDIR}/.cont_temp"
 
     echo "Deteniendo comando DetectaW5..."
 	
