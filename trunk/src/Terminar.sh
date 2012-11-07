@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-rm -rf temp/*
+rm -rf "${TEMPDIR}"/*
 StopD

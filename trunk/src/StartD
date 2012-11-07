@@ -1,10 +1,10 @@
 #!/bin/sh
 
 #valido que este corriendo solo una vez
-if [ -e ./.cont_temp ]; then
+if [ -e "${TEMPDIR}/.cont_temp" ]; then
     echo "No se puede iniciar, DetectaW5 ya esta corriendo"
 else
-    touch ./.cont_temp
+    touch "${TEMPDIR}/.cont_temp"
     echo "Iniciando comando DetectaW5..."
     
     "${BINDIR}/DetectaW5.sh" & 
