@@ -167,31 +167,31 @@ do
 		#habilitar lo que sigue cuando se integre todo			
 		MoverW5.sh "$ARRIDIR/$archivo" "$ACEPDIR" "DetectaW5"
 		mensaje="Se movio el archivo $archivo al directorio de aceptados"
-		sh LoguearW5.sh "DetectaW5" "I" "$mensaje"	
+		LoguearW5.sh "DetectaW5" "I" "$mensaje"	
 			
 	    else
 		
 		if [ $codigo_rechazo -eq 1 ]; then
 		    mensaje="Error formato del archivo: $archivo. Se movio al directorio de rechazados"
-		    sh LoguearW5.sh "DetectaW5" "E" "$mensaje"
+		    LoguearW5.sh "DetectaW5" "E" "$mensaje"
 		elif [ $codigo_rechazo -eq 2 ]; then
 		    mensaje="Tipo archivo invalido: $archivo. Se movio al directorio de rechazados"
-		    sh LoguearW5.sh "DetectaW5" "E" "$mensaje"
+		    LoguearW5.sh "DetectaW5" "E" "$mensaje"
 		elif [ $codigo_rechazo -eq 3 ]; then
 		    mensaje="No existe sistema asociado al cod_id del archivo $archivo, se movio a rechazados"
-		   sh LoguearW5.sh "DetectaW5" "E" "$mensaje"
+		    LoguearW5.sh "DetectaW5" "E" "$mensaje"
 		elif [ $codigo_rechazo -eq 4 ]; then
 		    mensaje="Fecha invalida en el $archivo, se movio al directorio de rechazados"
-		    sh LoguearW5.sh "DetectaW5" "E" "$mensaje"
+		    LoguearW5.sh "DetectaW5" "E" "$mensaje"
 		elif [ $codigo_rechazo -eq 5 ]; then
 		    mensaje="Error, fecha posterior a la actual. Se movio el archivo $archivo a rechazados"
-		    sh LoguearW5.sh "DetectaW5" "E" "$mensaje"
+		    LoguearW5.sh "DetectaW5" "E" "$mensaje"
 		elif [ $codigo_rechazo -eq 6 ]; then
 		    mensaje="Error, fecha anterior a la de Alta. Se movio el archivo $archivo a rechazados"
-		    sh LoguearW5.sh "DetectaW5" "E" "$mensaje"
+		    LoguearW5.sh "DetectaW5" "E" "$mensaje"
 		elif [ $codigo_rechazo -eq 7 ]; then
 		    mensaje="Error, fecha posterior a la de Baja. Se movio el archivo $archivo a rechazados"
-		    sh LoguearW5.sh "DetectaW5" "E" "$mensaje"
+		    LoguearW5.sh "DetectaW5" "E" "$mensaje"
 		fi		
 		#habilitar lo que sigue cuando se integre todo			
 		MoverW5.sh "$ARRIDIR/$archivo" "$RECHDIR" "DetectaW5"

@@ -45,10 +45,10 @@ fi
 #Cuento la cantidad de archivos a procesar
 
 #Guardo archivos de ARRIDIR en un temporal
-ls -1p "$ACEPDIR" | grep -v /\$ > .temp_archivosB
+ls -1p "$ACEPDIR" | grep -v /\$ > "${TEMPDIR}/.temp_archivosB"
 
 #Cuento cantidad de archivos
-cant_archivos=$(wc -l < .temp_archivosB)
+cant_archivos=$(wc -l < "${TEMPDIR}/.temp_archivosB")
 
 #Busco numero de ciclo en archivo de configuracion y lo actualizo
 nro_ciclo=$(grep -o 'SECUENCIA2=[0-9][0-9]*' "$CONFDIR/InstalaW5.conf" | cut -d \= -f 2 ) 
@@ -110,11 +110,11 @@ while read linea; do
 			#eval $bus
 lalala="$ACEPDIR/$linea"
 
-			grep -n "${pat_exp}" "${lalala}" >> .busqueda
+			grep -n "${pat_exp}" "${lalala}" >> "${TEMPDIR}/.busqueda"
 #cat .busqueda
-			cant_hzgo_arch=$(wc -l < .busqueda)
+			cant_hzgo_arch=$(wc -l < "${TEMPDIR}/.busqueda")
 
-			if [ $cant_hzgo_arch > 0 ];
+			if [ $cant_hzgo_arch -gt 0 ];
 			then
 				conhallazgo=1	
 				
@@ -138,26 +138,26 @@ lalala="$ACEPDIR/$linea"
 							echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> "${PROCDIR}/resultados.${pat_id}"			
 						let nro_linealog+=1						
 						done
-					done < .busqueda
+					done < "${TEMPDIR}/.busqueda"
 				
 				#si tengo que guardar caracteres					
 				elif [ "$pat_con" = "caracter" ]; then
 				#cuento cantidad de archivos
-				cant_lineasarch=$(wc -l < .busqueda)
+				cant_lineasarch=$(wc -l < "${TEMPDIR}/.busqueda")
 				for i in $(seq 1 $cant_lineasarch)
 					do
 						IFSOLD=$IFS
 						IFS="\n"
 						#obtengo nombre del primer archivo
-	    					linealog=$(head -n $i .busqueda | tail -n 1)
-						echo $linealog >> .buslinea
-						nro_linealog=$(grep -o "^[0-9][0-9]*" .buslinea)
+	    					linealog=$(head -n $i "${TEMPDIR}/.busqueda" | tail -n 1)
+						echo $linealog >> "${TEMPDIR}/.buslinea"
+						nro_linealog=$(grep -o "^[0-9][0-9]*" "${TEMPDIR}/.buslinea")
 						
-						rm .buslinea
-						echo $linealog | sed "s/^[0-9][0-9]*://" >>.bus 2> "/dev/null"
+						rm "${TEMPDIR}/.buslinea"
+						echo $linealog | sed "s/^[0-9][0-9]*://" >> "${TEMPDIR}/.bus" 2> "/dev/null"
 
 						#expre="grep -bo $pat_exp .bus|cut -d\: -f 1" 
-						pos_hallado=$(grep -bo "$pat_exp" .bus|cut -d\: -f 1) 
+						pos_hallado=$(grep -bo "$pat_exp" "${TEMPDIR}/.bus" | cut -d\: -f 1)
 						let pos_hallado+=1
 						hastacar=0
 						desdecar=0	
@@ -168,15 +168,15 @@ lalala="$ACEPDIR/$linea"
 						let hastacar+=cuantos
 						let hastacar-=1
 
-						hallado=$(cat .bus | cut -c$desdecar-$hastacar) 
-						rm .bus
+						hallado=$(cat "${TEMPDIR}/.bus" | cut -c$desdecar-$hastacar) 
+						rm "${TEMPDIR}/.bus"
 						IFS=$IFSOLD
 						echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> "${PROCDIR}/resultados.${pat_id}"			
 					done 
 				
 				fi  	
 			fi
-			rm .busqueda
+			rm "${TEMPDIR}/.busqueda"
 			echo "${nro_ciclo},${linea},${cant_hzgo_arch},${pat_exp},${pat_con},${desde},${hasta}" >> "${PROCDIR}/rglobales.${pat_id}"
 		fi	
 		
@@ -196,11 +196,11 @@ lalala="$ACEPDIR/$linea"
 	#habilitar lo que sigue cuando se integre todo
         MoverW5.sh "$ACEPDIR/$linea" "$PROCDIR" "BuscarW5"
 	
-done < .temp_archivosB
+done < "${TEMPDIR}/.temp_archivosB"
 
 #fin de todos los archivos procesados
 LoguearW5.sh "BuscarW5" "I" "Fin de ciclo: ${nro_ciclo} - Cant Arch con Hallazgos: ${cant_hzgo} - Cant. Arch sin Hallazgos: ${cant_s_hzgo} - Cant Arch sin Patron Aplicable: ${cant_s_patron} "
 
 
 #Borro archivos temporales
-rm .temp_archivosB
+rm "${TEMPDIR}/.temp_archivosB"
