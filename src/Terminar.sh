@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-rm -rf "${TEMPDIR}"/*
 StopD
+rm -rf -- "${TEMPDIR}" && mkdir "${TEMPDIR}"
+exit 0
