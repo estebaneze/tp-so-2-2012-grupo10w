@@ -3,6 +3,19 @@
 #variable interna
 error_ambiente=false
 
+
+##borrar
+#GRUPO="./"
+#ACEPDIR="acepdir"
+#CONFDIR="confdir"
+#CONFARCH="confdir/InstalaW5.conf"
+#PROCDIR="procdir"
+#RECHDIR="rechdir"
+#MAEDIR="maedir"
+#ARRIDIR="arridir"
+#TEMPDIR="tempdir"
+
+
 #verifico inicializacion de ambiente
 #verifico que las variables no sean nulas
 
@@ -71,15 +84,27 @@ cant_s_patron=0
 while read linea; do
 	#Logueo
 	LoguearW5.sh "BuscarW5" "I" "Archivo a procesar: ${linea}"
+	
+	#separo los campos
+	sis=$(echo $linea | cut -d \_ -f 1) 
+	fecha=$(echo $linea | cut -d \_ -f 2)
+	fechaSVersion=$(echo $fecha | cut -d \. -f 1)	
 
 	#Verifico que el archivo no haya sido procesado
-	if [ $(find "$PROCDIR" -name $linea | wc -l) -eq 1 ]
+	if [ $(find "$PROCDIR" -name "${sis}_${fechaSVersion}*" | wc -l) -eq 1 ]
+	
 	then
+
 		#Logueo y muevo el archivo
 		LoguearW5.sh "BuscarW5" "E" "Archivo ${linea} ya se encuentra procesado"
 		#comentar lo que sigue cuando se integre
 		MoverW5.sh "$ACEPDIR/$linea" "$RECHDIR" "BuscarW5"
-	else
+	else	
+		#Si no se proceso lo muevo a PROCDIR
+		MoverW5.sh "$ACEPDIR/$linea" "$PROCDIR" "BuscarW5"
+		#Busco con que nombre se movio
+		nombreArchivo=$(find "$PROCDIR" -iname "${sis}_${fechaSVersion}*" -printf "%f\n")
+		linea=$nombreArchivo
 
 		#Inicializo variables
 		conpatron=0
@@ -107,9 +132,7 @@ while read linea; do
 				separador="+-#-+"
 				nro_linea=0
 
-				#bus="grep -n "$pat_exp" "$ACEPDIR/$linea" >> .busqueda"
-				#eval $bus
-	lalala="$ACEPDIR/$linea"
+				lalala="$PROCDIR/$linea"
 
 				grep -n "${pat_exp}" "${lalala}" >> "${TEMPDIR}/.busqueda"
 	#cat .busqueda
@@ -117,15 +140,15 @@ while read linea; do
 
 				if [ $cant_hzgo_arch -gt 0 ];
 				then
-					conhallazgo=1	
-				
+									
 					#calculo cuantos caracteres o lineas debo guardar	
 					cuantos=1
 					let cuantos+=nhasta
 					let cuantos-=desde
 				
 					#si tengo que guardar lineas
-					if [ "$pat_con" = "linea" ]; then			
+					if [ "$pat_con" = "linea" ]; then
+						conhallazgo=1			
 						while read linealog; do
 							nro_linealog=$(echo $linealog | cut -d \: -f 1)
 							let nro_linealog-=1
@@ -133,9 +156,7 @@ while read linea; do
 							cuantosguardo=$cuantos
 							while [ $cuantosguardo -ne 0 ]; do
 								let cuantosguardo-=1
-							
-								#hallar="head -$nro_linealog "$ACEPDIR/$linea" | tail -1" 
-								hallado=$(head -$nro_linealog "$ACEPDIR/$linea" | tail -1)
+								hallado=$(head -$nro_linealog "$PROCDIR/$linea" | tail -1)
 								echo "${nro_ciclo}${separador}${linea}${separador}${nro_linealog}${separador}${hallado}" >> "${PROCDIR}/resultados.${pat_id}"			
 							let nro_linealog+=1						
 							done
@@ -188,10 +209,13 @@ while read linea; do
 					fi  	
 				fi
 				rm "${TEMPDIR}/.busqueda"
-				if [ $cant_hallados_caracter -ne 0 ]; then
-				echo "${nro_ciclo},${linea},${cant_hallados_caracter},${pat_exp},${pat_con},${desde},${hasta}" >> "${PROCDIR}/rglobales.${pat_id}"
-				else 
-					conhallazgo=0
+				if [ "$pat_con" = "linea" ]; then
+					if [ "$cant_hzgo_arch" -ne 0 ]; then
+						echo "${nro_ciclo},${linea},${cant_hzgo_arch},${pat_exp},${pat_con},${desde},${hasta}" >> "${PROCDIR}/rglobales.${pat_id}"
+					fi
+				elif [ "$cant_hallados_caracter" -ne 0 ]; then
+					echo "${nro_ciclo},${linea},${cant_hallados_caracter},${pat_exp},${pat_con},${desde},${hasta}" >> "${PROCDIR}/rglobales.${pat_id}"
+					conhallazgo=1
 				fi
 			fi	
 		
@@ -208,8 +232,7 @@ while read linea; do
 			let cant_s_patron+=1
 		fi
 
-		#habilitar lo que sigue cuando se integre todo
-		MoverW5.sh "$ACEPDIR/$linea" "$PROCDIR" "BuscarW5"
+
 		fi
 	
 done < "${TEMPDIR}/.temp_archivosB"
@@ -220,3 +243,4 @@ LoguearW5.sh "BuscarW5" "I" "Fin de ciclo: ${nro_ciclo} - Cant Arch con Hallazgo
 
 #Borro archivos temporales
 rm "${TEMPDIR}/.temp_archivosB"
+
