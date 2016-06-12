@@ -47,8 +47,8 @@ function moverW5 {
 
 ORIGEN=$1
 DESTINO=$2
-COMANDO=$3
-moverW5 "$ORIGEN" "$DESTINO" "$COMANDO"
+COMMANDO=$3
+moverW5 "$ORIGEN" "$DESTINO" "$COMMANDO"
 RET=$?
 
 exit $RET

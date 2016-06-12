@@ -5,7 +5,7 @@ if [ -e "${TEMPDIR}/.cont_temp" ]; then
     echo "No se puede iniciar, DetectaW5 ya esta corriendo"
 else
     touch "${TEMPDIR}/.cont_temp"
-    echo "Iniciando comando DetectaW5..."
+    echo "Iniciando commando DetectaW5..."
     
     "${BINDIR}/DetectaW5.sh" & 
 

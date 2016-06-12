@@ -213,7 +213,7 @@ do
     ls -1p "$ACEPDIR" | grep -v /\$ > "${TEMPDIR}/.archivos_acep_temp"
     cant_acep=$(wc -l < "${TEMPDIR}/.archivos_acep_temp")
     
-    #si existen archivos en ACEPDIR ejecuto comando BuscarW5.sh
+    #si existen archivos en ACEPDIR ejecuto commando BuscarW5.sh
     if [ $cant_acep -ne 0 ]; then
 	
 	BuscarW5.sh 
