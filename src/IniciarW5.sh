@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#Comando IniciarW5
+#Commando IniciarW5
 
 #ARCH_CONFIG='./conf/InstalaW5.conf'
 #ARCH_BLOQUEO_INICIAR='./temp/iniciar.bloqueo'

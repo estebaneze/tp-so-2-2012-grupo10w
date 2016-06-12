@@ -3,7 +3,7 @@ if [ -e "${TEMPDIR}/.cont_temp" ]; then
 
     rm "${TEMPDIR}/.cont_temp"
 
-    echo "Deteniendo comando DetectaW5..."
+    echo "Deteniendo commando DetectaW5..."
 	
 	pkill "DetectaW5.sh"
 	PIDDETECTA=$(pgrep DetectaW5.sh)
@@ -14,5 +14,5 @@ if [ -e "${TEMPDIR}/.cont_temp" ]; then
 	fi
 
 else
-    echo "El comando DetectaW5 ya se encuentra detenido"
+    echo "El commando DetectaW5 ya se encuentra detenido"
 fi

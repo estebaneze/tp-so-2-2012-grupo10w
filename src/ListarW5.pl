@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-#   Comando de consultas y listados: ListarV5 y ListarW5
+#   Commando de consultas y listados: ListarV5 y ListarW5
 #
 #       DESCRIPCIÓN
 #       1. El propósito de este programa perl es resolver consultas
@@ -12,7 +12,7 @@
 #
 #       2. Opciones
 #           2.1. Opción –h
-#               • muestra la ayuda del comando
+#               • muestra la ayuda del commando
 #           2.2. Opción –g (Opción default)
 #               • La consulta resolverá consultas sobre cantidad de 
 #                 hallazgos (RGLOBALES.PAT_ID)
@@ -40,7 +40,7 @@
 #          (requisito indispensable)
 #
 #       6. Debido al alto grado de libertad que se les permite en el
-#          desarrollo de este comando, documentarlo detalladamente.
+#          desarrollo de este commando, documentarlo detalladamente.
 #
 #
 #
@@ -1803,7 +1803,7 @@ getopts("hgrx", \%opciones);
 #exit 0;
 
 if ( defined $opciones{h} ) {
-    # muestra la ayuda del comando y sale
+    # muestra la ayuda del commando y sale
     mensaje_ayuda();
     exit 0;
 }

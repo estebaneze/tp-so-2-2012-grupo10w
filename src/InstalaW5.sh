@@ -1,6 +1,6 @@
 #!/bin/bash
 ####################################################################################################
-#Comando InstalaW5
+#Commando InstalaW5
 ####################################################################################################
 #Realiza la Instalación del Sistema
 #Si la instalación se ha realizado con anterioridad informa si la instalación está completa,
@@ -227,7 +227,7 @@ function ChequearInstalacion {
 		echo "Saliendo de la instalacion"		
 		return 2;
 	fi
-	Loguear "I" "Comando InstalaW5 Inicio de Ejecución" 1
+	Loguear "I" "Commando InstalaW5 Inicio de Ejecución" 1
 	#Chequeo que todos los directorios estén creados y tengan los 
 	#archivos que corresponden, los que no estén los agrego al array
 	#de faltantes
@@ -286,7 +286,7 @@ function ChequearInstalacion {
 		Loguear "I" "Archivos externos rechazados: $RECHDIR" 0
 		Loguear "I" "Archivos procesados: $PROCDIR" 0
 		Loguear "I" "Reportes de salida: $REPODIR" 0
-		Loguear "I" "Logs de auditoria del Sistema: $LOGDIR/<comando>$LOGEXT" 0
+		Loguear "I" "Logs de auditoria del Sistema: $LOGDIR/<commando>$LOGEXT" 0
 		Loguear "I" "Estado de la instalación: COMPLETA" 0
 		Loguear "I" "Proceso de Instalación Cancelado" 0
 		return 0
@@ -349,7 +349,7 @@ function InformarDatosInstalacion {
 	Loguear "I" "Archivos externos rechazados: $RECHDIR" 0
 	Loguear "I" "Archivos procesados: $PROCDIR" 0
 	Loguear "I" "Reportes de salida: $REPODIR" 0
-	Loguear "I" "Logs de auditoria del Sistema: $LOGDIR/<comando>$LOGEXT" 0
+	Loguear "I" "Logs de auditoria del Sistema: $LOGDIR/<commando>$LOGEXT" 0
 	Loguear "I" "Tamaño máximo para los archivos del log del sistema: $LOGSIZE Kb" 0
 }
 
@@ -421,7 +421,7 @@ function IsNumber {
 function ChequearSalida {
 	if [ "$1" == "#q" ]; then
 		Loguear "I" "Instalacion cancelada por el usuario" 0
-		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+		Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 		exit 2
 	fi
 }
@@ -484,13 +484,13 @@ if [ -z "$CONFARCH" ] || [ ! -e "$CONFARCH" ]; then
 		exit 3;
 	fi
 
-	Loguear "I" "Comando InstalaW5 Inicio de Ejecución" 1
+	Loguear "I" "Commando InstalaW5 Inicio de Ejecución" 1
 
 	#Chequeo que estén todos los archivos de instalación, si falta alguno salgo
 	archivosInstalacion=( IniciarW5.sh DetectaW5.sh BuscarW5.sh ListarW5.pl MoverW5.sh LoguearW5.sh MirarW5.sh StopD StartD patrones sistemas Terminar.sh )
 	ChequearInstalables ${archivosInstalacion[@]}
 	if [ $? -eq 1 ]; then
-		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+		Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 		exit 3
 	fi
 	
@@ -499,7 +499,7 @@ if [ -z "$CONFARCH" ] || [ ! -e "$CONFARCH" ]; then
 	ChequearPerl
 	#Si no esta instalado salgo con 1
 	if [ $? -eq 1 ]; then
-		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+		Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 		exit 1
 	fi
 	#Defino datos de instalacion
@@ -530,7 +530,7 @@ if [ -z "$CONFARCH" ] || [ ! -e "$CONFARCH" ]; then
 		DefinirDataSize
 		if [ $? -eq 1 ]; then
 			Loguear "I" "Instalacion cancelada por el usuario" 1
-			Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+			Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 			exit 2
 		fi
 		#Defino el directorio de archivos rechazados
@@ -645,17 +645,17 @@ else
 	salida=$?
 	#Si la instalacion esta completa salgo con 0
 	if [ $salida -eq 0 ]; then
-		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+		Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 		exit 0
 	fi
 	#Si no estan todos los archivos de instalacion necesarios salgo con 3
 	if [ $salida -eq 2 ]; then
-		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+		Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 		exit 3
 	fi
 	#Si Perl no está instalado salgo con 1
 	if [ $salida -eq 3 ]; then
-		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+		Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 		exit 1
 	fi
 	RESPUESTA=
@@ -670,7 +670,7 @@ else
 	Loguear "I" "El usuario ingresó: $RESPUESTA" 1
 	if [ "$RESPUESTA" = "No" ]; then
 		Loguear "I" "Instalacion cancelada por el usuario" 0
-		Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+		Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 		exit 2
 	fi
 	clear
@@ -689,7 +689,7 @@ Loguear "I" "El usuario ingresó: $RESPUESTA" 1
 #Salgo con 2 si el usuario no quiere proseguir con la instalacion
 if [ "$RESPUESTA" = "No" ]; then
 	Loguear "I" "Instalacion cancelada por el usuario" 0
-	Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+	Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 	exit 2
 fi
 
@@ -708,7 +708,7 @@ Loguear "I" "Actualizando la configuración del sistema. . . ." 0
 GuardarVariables
 
 Loguear "I" "Instalación Concluida" 0
-Loguear "I" "Comando InstalaW5 Fin de Ejecución" 1 
+Loguear "I" "Commando InstalaW5 Fin de Ejecución" 1 
 exit 0
 
 ####################################################################################################

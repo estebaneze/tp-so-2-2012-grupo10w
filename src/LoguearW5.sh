@@ -4,7 +4,7 @@
 errorParametro() {
         echo 'Error uso LoguearW5'
         echo 'Forma Correcta:'
-        echo 'LoguearW5 <comando> <tipoMensaje [I, A, E, SE]> <mensaje>'
+        echo 'LoguearW5 <commando> <tipoMensaje [I, A, E, SE]> <mensaje>'
 }
 
 errorDirectorioGrupo() {
@@ -23,7 +23,7 @@ if [ $# -ne 3 ]; then
         exit 1
 fi
 
-comando=$1
+commando=$1
 tipoMensaje=$2
 mensaje=$3
 
@@ -47,8 +47,8 @@ if [ $tipoMensaje != "I" ] && [ $tipoMensaje != "A" ] && [ $tipoMensaje != "E" ]
         exit 1
 fi
 
-#si comando que llama Instalar => directorio conf
-if [ $comando = "InstalaW5" ]; then
+#si commando que llama Instalar => directorio conf
+if [ $commando = "InstalaW5" ]; then
 	directorioLogPar="$GRUPO/confdir"
 else
 	# estan definido? Sino => valor default
@@ -76,13 +76,13 @@ if [ ! -d "$logPath" ]; then
         mkdir "$logPath" -p -m 777
 fi
 
-nombreArchivoLog="$comando$extensionLogPar"
+nombreArchivoLog="$commando$extensionLogPar"
 archivoLog="$logPath/$nombreArchivoLog"
 
 #formato data (yyyyMMdd hh:mm:ss)
 when=$(date '+%Y%m%d %T')
 who=$(whoami)
-where=$comando
+where=$commando
 what=$tipoMensaje
 why=$mensaje
 
